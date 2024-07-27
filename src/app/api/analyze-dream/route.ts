@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+console.log('All environment variables:', Object.keys(process.env));
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('VERCEL_ENV:', process.env.VERCEL_ENV);
 console.log('OPENAI_API_KEY in route file:', process.env.OPENAI_API_KEY ? 'Set' : 'Not set');
 console.log('OPENAI_API_KEY length:', process.env.OPENAI_API_KEY?.length);
 
