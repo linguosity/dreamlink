@@ -1,12 +1,22 @@
 "use client"
 
 import { Navbar, Dropdown, Avatar } from "flowbite-react";
-import DreamAnalysisCard from "../app/components/OpenAIAnalysisCard";
-import { SideNavbar } from "../app/components/Sidebar";
+import DreamAnalysisCard from "./components/OpenAIAnalysisCard";
+import { SideNavbar } from "./components/Sidebar";
+import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+
+function ErrorFallback({ error }: FallbackProps) {
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+    </div>
+  )
+}
 
 export default function Home() {
   return (
-    <>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
       <header>
         <Navbar fluid rounded>
           <div className="flex md:order-2">
@@ -48,6 +58,6 @@ export default function Home() {
           <DreamAnalysisCard />
         </div>
       </main>
-    </>
+    </ErrorBoundary>
   );
 }
