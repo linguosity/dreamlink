@@ -1,77 +1,35 @@
-"use client";
+"use client"
 
-import { isBrowser } from "../helpers/is-browser";
-import { isSmallScreen } from "../helpers/is-small-screen";
-import type { FC, PropsWithChildren } from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
-interface SidebarContextProps {
+interface SidebarContextType {
   isCollapsed: boolean;
-  setCollapsed: (isOpen: boolean) => void;
+  toggleSidebar: () => void;
 }
 
-const SidebarContext = createContext<SidebarContextProps>(
-  {} as SidebarContextProps,
-);
+const SidebarContext = createContext<SidebarContextType>({
+  isCollapsed: false,
+  toggleSidebar: () => {},
+});
 
-export const SidebarProvider: FC<PropsWithChildren> = function ({ children }) {
-  const location = isBrowser() ? window.location.pathname : "/";
-  const storedIsCollapsed = isBrowser()
-    ? localStorage.getItem("isSidebarCollapsed") === "true"
-    : false;
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const [isCollapsed, setCollapsed] = useState(storedIsCollapsed);
-
-  // Close Sidebar on page change on mobile
-  useEffect(() => {
-    if (isSmallScreen()) {
-      setCollapsed(true);
-    }
-  }, [location]);
-
-  // Close Sidebar on mobile tap inside main content
-  useEffect(() => {
-    function handleMobileTapInsideMain(event: MouseEvent) {
-      const main = document.querySelector("#main-content");
-      const isClickInsideMain = main?.contains(event.target as Node);
-
-      if (isSmallScreen() && isClickInsideMain) {
-        setCollapsed(true);
-      }
-    }
-
-    document.addEventListener("mousedown", handleMobileTapInsideMain);
-
-    return () => {
-      document.removeEventListener("mousedown", handleMobileTapInsideMain);
-    };
-  }, []);
-
-  // Update local storage when collapsed state changed
-  useEffect(() => {
-    localStorage.setItem("isSidebarCollapsed", isCollapsed ? "true" : "false");
-  }, [isCollapsed]);
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
 
   return (
-    <SidebarContext.Provider
-      value={{
-        isCollapsed,
-        setCollapsed,
-      }}
-    >
+    <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
       {children}
     </SidebarContext.Provider>
   );
-};
+}
 
-export function useSidebarContext(): SidebarContextProps {
+export function useSidebarContext() {
   const context = useContext(SidebarContext);
-
-  if (typeof context === "undefined") {
-    throw new Error(
-      "useSidebarContext should be used within the SidebarContext provider!",
-    );
+  if (context === undefined) {
+    throw new Error('useSidebarContext must be used within a SidebarProvider');
   }
-
   return context;
 }

@@ -2,7 +2,7 @@
 
 import { Sidebar, Button } from "flowbite-react";
 import type { FC } from "react";
-import React, { useState } from "react";
+import React from "react";
 import {
   HiArrowSmRight,
   HiChevronLeft,
@@ -14,22 +14,19 @@ import {
   HiUser,
   HiViewBoards,
 } from "react-icons/hi";
+import { useSidebarContext } from "../../context/SidebarContext";
 
 export const SideNavbar: FC = function () {
-  const [isOpen, setOpen] = useState(true);
-
-  function toggle() {
-    setOpen(!isOpen);
-  }
+  const { isCollapsed, toggleSidebar } = useSidebarContext();
 
   return (
     <div className="flex flex-col h-screen">
-      <Sidebar aria-label="Example sidebar" collapsed={isOpen} className="h-full">
+      <Sidebar aria-label="Example sidebar" collapsed={isCollapsed} className="h-full">
         <Sidebar.Items>
           <Sidebar.ItemGroup>
             <div className="flex items-center justify-between p-0 m-0 align-items-center justify-items-center">
-              <Button color="warning" onClick={toggle}>
-                {isOpen ? <HiChevronRight className="w-5 h-5" /> : <HiChevronLeft className="w-5 h-5" />}
+              <Button color="warning" onClick={toggleSidebar}>
+                {isCollapsed ? <HiChevronRight className="w-5 h-5" /> : <HiChevronLeft className="w-5 h-5" />}
               </Button>
             </div>
             <Sidebar.Item href="#" icon={HiChartPie}>
