@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+console.log('OPENAI_API_KEY in route file:', process.env.OPENAI_API_KEY ? 'Set' : 'Not set');
+console.log('OPENAI_API_KEY length:', process.env.OPENAI_API_KEY?.length);
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -53,6 +56,10 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error in analyze-dream API route:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return NextResponse.json({ error: 'An error occurred while processing your request' }, { status: 500 });
   }
 }
