@@ -1,28 +1,39 @@
-import { Configuration, OpenAIApi } from 'openai-edge'
-import { OpenAIStream, StreamingTextResponse } from 'ai'
+import OpenAI from "openai";
+import { StreamingTextResponse } from 'ai';
 
-const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-})
-const openai = new OpenAIApi(config)
+const openai = new OpenAI();
 
-export const runtime = 'edge'
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
-  const { messages } = await req.json()
+  const { messages, useJsonMode = false } = await req.json();
 
-  const response = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
-    stream: true,
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
-        content: "You are a helpful assistant designed to output JSON. Analyze dreams and provide meanings from the King James Bible with supporting verses. Your response should always include 'dream', 'meaning', and 'interpretation' fields. The 'interpretation' field should be an array of objects, each containing 'verse' and 'explanation' fields.",
+        content: useJsonMode 
+          ? "You are a helpful assistant designed to output JSON. Analyze dreams and provide meanings from the King James Bible with supporting verses."
+          : "You are a helpful assistant.",
       },
       ...messages
-    ]
-  })
+    ],
+    ...(useJsonMode && { response_format: { type: "json_object" } }),
+    stream: true,
+  });
 
-  const stream = OpenAIStream(response)
-  return new StreamingTextResponse(stream)
+  const stream = new ReadableStream({
+    async start(controller) {
+      // Use type assertion here
+      const stream = response as any;
+      for await (const part of stream) {
+        const chunk = part.choices[0]?.delta?.content || '';
+        controller.enqueue(chunk);
+      }
+      controller.close();
+    },
+  });
+
+  return new StreamingTextResponse(stream);
 }
