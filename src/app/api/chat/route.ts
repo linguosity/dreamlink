@@ -6,7 +6,12 @@ const openai = new OpenAI();
 export const runtime = 'edge';
 
 export async function POST(req: Request) {
-  const { messages, useJsonMode = false } = await req.json();
+  const body = await req.json();
+  console.log('Received request body:', JSON.stringify(body, null, 2));
+
+  const { messages, useJsonMode = false } = body;
+  console.log('Extracted messages:', JSON.stringify(messages, null, 2));
+  console.log('useJsonMode:', useJsonMode);
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
@@ -23,9 +28,14 @@ export async function POST(req: Request) {
     stream: true,
   });
 
+  console.log('OpenAI API call made with parameters:', JSON.stringify({
+    model: "gpt-4o-mini",
+    messages: messages,
+    useJsonMode: useJsonMode
+  }, null, 2));
+
   const stream = new ReadableStream({
     async start(controller) {
-      // Use type assertion here
       const stream = response as any;
       for await (const part of stream) {
         const chunk = part.choices[0]?.delta?.content || '';
