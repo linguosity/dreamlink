@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, TextInput, Button, Spinner } from 'flowbite-react';
 import { useChat } from 'ai/react';
 
@@ -15,9 +15,16 @@ export default function DreamAnalysisCard() {
     api: '/api/chat',
   });
 
+  useEffect(() => {
+    console.log('Current messages:', messages);
+  }, [messages]);
+
   const parseAnalysis = (content: string): DreamAnalysis | null => {
+    console.log('Attempting to parse content:', content);
     try {
-      return JSON.parse(content);
+      const parsed = JSON.parse(content);
+      console.log('Successfully parsed content:', parsed);
+      return parsed;
     } catch (error) {
       console.error('Failed to parse analysis:', error);
       return null;
@@ -25,7 +32,10 @@ export default function DreamAnalysisCard() {
   };
 
   const lastMessage = messages[messages.length - 1];
+  console.log('Last message:', lastMessage);
+
   const analysis = lastMessage?.role === 'assistant' ? parseAnalysis(lastMessage.content) : null;
+  console.log('Parsed analysis:', analysis);
 
   return (
     <div className="space-y-4">
