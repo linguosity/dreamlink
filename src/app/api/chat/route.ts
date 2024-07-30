@@ -5,6 +5,13 @@ const openai = new OpenAI();
 
 export const runtime = 'edge';
 
+interface OpenAIError extends Error {
+  status?: number;
+  code?: string;
+  param?: string;
+  type?: string;
+}
+
 export async function POST(req: Request) {
   console.log('Received request');
   
@@ -26,15 +33,15 @@ export async function POST(req: Request) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini",  // Make sure this is the correct model name
       messages: [
         {
           role: "system",
           content: `
-          You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the King James Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure:
+            You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the King James Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure:
 
             {
-              "title": "A very brief title for the dream interpretation",
+              "title": "A short title for the dream interpretation",
               "summary": "A concise 1-2 line summary of the user's dream",
               "tags": ["tag1", "tag2", "tag3", ...],
               "interpretation": [
@@ -47,35 +54,7 @@ export async function POST(req: Request) {
               ]
             }
 
-            Guidelines:
-            1. The 'title' should be a very brief title for the dream interpretation.
-            2. The 'summary' should be a brief, 1-2 line description of the key elements of the user's dream.
-            3. The 'tags' array should include keywords from the dream and the names of the Bible books referenced.
-            4. Each item in the 'interpretation' array represents an Accordion panel.
-            5. The 'verse' field will be used as the Accordion.Title.
-            6. The 'explanation' field will be used as the Accordion.Content.
-            7. Include the 'book' field to easily reference which book of the Bible the verse is from.
-            8. Provide 3-5 relevant verse interpretations for each dream.
-
-            Example response:
-
-            {
-              "summary": "Dreaming of building and caring for an ant farm",
-              "tags": ["ants", "diligence", "teamwork", "perseverance", "Proverbs", "Ecclesiastes", "Corinthians", "Galatians", "Matthew"],
-              "interpretation": [
-                {
-                  "verse": "Proverbs 6:6-8",
-                  "explanation": "Go to the ant, thou sluggard; consider her ways, and be wise: Which having no guide, overseer, or ruler, Provideth her meat in the summer, and gathereth her food in the harvest. This verse highlights the wisdom and industrious nature of ants, symbolizing diligence, hard work, and preparation. Building an ant farm in your dream may represent your efforts to emulate these virtues in your own life, emphasizing the importance of being proactive and industrious.",
-                  "book": "Proverbs"
-                },
-                {
-                  "verse": "1 Corinthians 12:14-18",
-                  "explanation": "For the body is not one member, but many. If the foot shall say, Because I am not the hand, I am not of the body; is it therefore not of the body? And if the ear shall say, Because I am not the eye, I am not of the body; is it therefore not of the body? If the whole body were an eye, where were the hearing? If the whole were hearing, where were the smelling? But now hath God set the members every one of them in the body, as it hath pleased him. This passage speaks to the importance of every individual's role within a community or organization. Caring for an ant farm in your dream might symbolize your understanding and appreciation of teamwork and the contributions of each member in a collective effort, mirroring the way each part of the body is vital to the whole.",
-                  "book": "1 Corinthians"
-                }
-              ]
-            }
-            
+            Provide 3-5 relevant verse interpretations for each dream.
           `
         },
         ...messages
@@ -103,8 +82,25 @@ export async function POST(req: Request) {
     });
 
     return new StreamingTextResponse(stream);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error calling OpenAI API:', error);
-    return new Response('Error processing request', { status: 500 });
+    
+    let errorMessage = 'An unknown error occurred';
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Check if it's an OpenAI error
+      const openAIError = error as OpenAIError;
+      if (openAIError.status) {
+        statusCode = openAIError.status;
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ error: 'Error processing request', details: errorMessage }),
+      { status: statusCode, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
