@@ -24,7 +24,8 @@ export default function DreamAnalysisCard() {
     }
   };
 
-  const analysis = messages.length > 1 ? parseAnalysis(messages[messages.length - 1].content) : null;
+  const lastMessage = messages[messages.length - 1];
+  const analysis = lastMessage?.role === 'assistant' ? parseAnalysis(lastMessage.content) : null;
 
   return (
     <Card className="max-w-sm">
@@ -60,7 +61,7 @@ export default function DreamAnalysisCard() {
           </ul>
         </div>
       )}
-      {!isLoading && messages.length > 1 && !analysis && (
+      {!isLoading && lastMessage?.role === 'assistant' && !analysis && (
         <p className="text-red-500">Failed to parse the analysis. Please try again.</p>
       )}
     </Card>
