@@ -5,6 +5,7 @@ import { Card, TextInput, Button, Spinner, Badge, Accordion } from 'flowbite-rea
 import { useChat } from 'ai/react';
 
 interface DreamAnalysis {
+  title: string;
   summary: string;
   tags: string[];
   interpretation: Array<{ verse: string; explanation: string; book: string }>;
@@ -94,10 +95,11 @@ export default function DreamAnalysisCard() {
 
       {analysis && (
         <Card className="max-w-sm">
-          <h5 className="text-lg font-bold mb-2">Dream Analysis: {analysis.summary}</h5>
+          <h5 className="text-base font-bold mb-2">{analysis.title}</h5>
           <div className="flex flex-wrap gap-2 mb-4">
+            <span>{analysis.summary}</span>
             {analysis.tags.map((tag, index) => (
-              <Badge key={index} color="info">{tag}</Badge>
+              <Badge key={index} color="indigo">{tag}</Badge>
             ))}
           </div>
           <Accordion>
