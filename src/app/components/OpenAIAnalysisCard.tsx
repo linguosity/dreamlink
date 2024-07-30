@@ -1,11 +1,13 @@
 'use client'
 
 import React, { useEffect } from 'react';
-import { Card, TextInput, Button, Spinner } from 'flowbite-react';
+import { Card, TextInput, Button, Spinner, Badge, Accordion } from 'flowbite-react';
 import { useChat } from 'ai/react';
 
 interface DreamAnalysis {
-  interpretation: Array<{ verse: string; explanation: string }>;
+  summary: string;
+  tags: string[];
+  interpretation: Array<{ verse: string; explanation: string; book: string }>;
 }
 
 export default function DreamAnalysisCard() {
@@ -90,23 +92,33 @@ export default function DreamAnalysisCard() {
         </Card>
       )}
 
-{analysis && (
-      <Card className="max-w-sm">
-        <h5 className="text-lg font-bold mb-2">Dream Analysis:</h5>
-        {analysis.interpretation.map((item, index) => (
-          <div key={index} className="mt-2">
-            <p><strong>Verse:</strong> {item.verse}</p>
-            <p><strong>Explanation:</strong> {item.explanation}</p>
+      {analysis && (
+        <Card className="max-w-sm">
+          <h5 className="text-lg font-bold mb-2">Dream Analysis: {analysis.summary}</h5>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {analysis.tags.map((tag, index) => (
+              <Badge key={index} color="info">{tag}</Badge>
+            ))}
           </div>
-        ))}
-      </Card>
-    )}
+          <Accordion>
+            {analysis.interpretation.map((item, index) => (
+              <Accordion.Panel key={index}>
+                <Accordion.Title>{item.verse}</Accordion.Title>
+                <Accordion.Content>
+                  <p className="mb-2 text-gray-500 dark:text-gray-400">{item.explanation}</p>
+                  <Badge color="dark">{item.book}</Badge>
+                </Accordion.Content>
+              </Accordion.Panel>
+            ))}
+          </Accordion>
+        </Card>
+      )}
 
-    {!isLoading && lastMessage?.role === 'assistant' && !analysis && (
-      <Card className="max-w-sm">
-        <p className="text-red-500">Failed to parse the analysis. Please try again.</p>
-      </Card>
-    )}
-  </div>
-);
+      {!isLoading && lastMessage?.role === 'assistant' && !analysis && (
+        <Card className="max-w-sm">
+          <p className="text-red-500">Failed to parse the analysis. Please try again.</p>
+        </Card>
+      )}
+    </div>
+  );
 }
