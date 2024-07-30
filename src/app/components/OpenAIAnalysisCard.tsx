@@ -5,18 +5,44 @@ import { Card, TextInput, Button, Spinner } from 'flowbite-react';
 import { useChat } from 'ai/react';
 
 interface DreamAnalysis {
-  dream: string;
-  meaning: string;
   interpretation: Array<{ verse: string; explanation: string }>;
 }
 
 export default function DreamAnalysisCard() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
     api: '/api/chat',
+    onResponse: async (response) => {
+      console.log('API Response received:', response);
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Parsed API response:', responseData);
+        // Manually add the assistant's message to the messages array
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            id: Date.now().toString(),
+            createdAt: new Date(),
+            role: 'assistant',
+            content: JSON.stringify(responseData),
+          },
+        ]);
+      } else {
+        console.error('API response not ok:', response.statusText);
+      }
+    },
   });
 
   useEffect(() => {
-    console.log('Current messages:', messages);
+    console.log('Messages updated:', messages);
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      console.log('Last message:', lastMessage);
+      if (lastMessage.role === 'assistant') {
+        console.log('Assistant response received:', lastMessage.content);
+        const parsedAnalysis = parseAnalysis(lastMessage.content);
+        console.log('Parsed analysis:', parsedAnalysis);
+      }
+    }
   }, [messages]);
 
   const parseAnalysis = (content: string): DreamAnalysis | null => {
@@ -64,26 +90,23 @@ export default function DreamAnalysisCard() {
         </Card>
       )}
 
-      {analysis && (
-        <Card className="max-w-sm">
-          <h5 className="text-lg font-bold mb-2">Dream Analysis:</h5>
-          <p><strong>Dream:</strong> {analysis.dream}</p>
-          <p className="mt-2"><strong>Meaning:</strong> {analysis.meaning}</p>
-          <h6 className="mt-4 font-semibold">Biblical Interpretations:</h6>
-          {analysis.interpretation.map((item, index) => (
-            <div key={index} className="mt-2">
-              <p><strong>Verse:</strong> {item.verse}</p>
-              <p><strong>Explanation:</strong> {item.explanation}</p>
-            </div>
-          ))}
-        </Card>
-      )}
+{analysis && (
+      <Card className="max-w-sm">
+        <h5 className="text-lg font-bold mb-2">Dream Analysis:</h5>
+        {analysis.interpretation.map((item, index) => (
+          <div key={index} className="mt-2">
+            <p><strong>Verse:</strong> {item.verse}</p>
+            <p><strong>Explanation:</strong> {item.explanation}</p>
+          </div>
+        ))}
+      </Card>
+    )}
 
-      {!isLoading && lastMessage?.role === 'assistant' && !analysis && (
-        <Card className="max-w-sm">
-          <p className="text-red-500">Failed to parse the analysis. Please try again.</p>
-        </Card>
-      )}
-    </div>
-  );
+    {!isLoading && lastMessage?.role === 'assistant' && !analysis && (
+      <Card className="max-w-sm">
+        <p className="text-red-500">Failed to parse the analysis. Please try again.</p>
+      </Card>
+    )}
+  </div>
+);
 }
