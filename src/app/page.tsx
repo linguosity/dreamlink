@@ -9,11 +9,18 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { useChat } from 'ai/react';
 
 // Define the structure of a dream analysis
+interface DreamInterpretation {
+  verse: string;
+  text: string;
+  explanation: string;
+  book: string;
+}
+
 interface DreamAnalysis {
   title: string;
   summary: string;
   tags: string[];
-  interpretation: Array<{ verse: string; explanation: string; book: string }>;
+  interpretation: DreamInterpretation[];
 }
 
 function ErrorFallback({ error }: FallbackProps) {
@@ -37,6 +44,13 @@ export default function Home() {
         try {
           const responseData: DreamAnalysis = await response.json();
           console.log('Parsed API response:', responseData);
+          
+          // Ensure interpretation array contains text property
+          responseData.interpretation = responseData.interpretation.map(item => ({
+            ...item,
+            text: item.text || "" // Provide a default value if text is missing
+          }));
+
           setDreams(prevDreams => [...prevDreams, responseData]);
           setError(null);
         } catch (err) {
@@ -54,7 +68,6 @@ export default function Home() {
       setError(`An error occurred: ${error.message}`);
     },
   });
-
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
