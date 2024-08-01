@@ -42,19 +42,21 @@ export async function POST(req: Request) {
 
             {
               "title": "A short title for the dream interpretation",
-              "summary": "A concise 1-2 line summary of the user's dream",
+              "summary": "A concise 1-2 line summary of the user's dream, citing relevant scriptures using popovers (e.g., 'The haunted house symbolizes the unknown or unresolved issues in your life, while the lost keys represent opportunities or solutions that feel just out of reach. ($Proverbs 3:5-6$)')",
               "tags": ["tag1", "tag2", "tag3", ...],
               "interpretation": [
                 {
                   "verse": "Book Chapter:Verse",
+                  "text": "Actual text of the verse from the Bible",
                   "explanation": "Detailed explanation of how the verse relates to the dream",
                   "book": "Name of the Bible book"
                 },
                 ...
               ]
             }
-
-            Provide 3-5 relevant verse interpretations for each dream.
+            
+            
+          
           `
         },
         ...messages

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { Navbar, Dropdown, Avatar } from "flowbite-react";
+import { Navbar, Dropdown, Avatar, HR } from "flowbite-react";
 import DreamAnalysisCard from "./components/OpenAIAnalysisCard";
 import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
@@ -62,8 +62,8 @@ export default function Home() {
         <header className="z-10">
           <Navbar fluid rounded>
             <Navbar.Brand href="https://flowbite-react.com">
-              <img src="/favicon.svg" className="mr-3 h-6 sm:h-9" alt="Flowbite React Logo" />
-              <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Flowbite React</span>
+              {/* <img src="/favicon.svg" className="mr-3 h-6 sm:h-9" alt="Flowbite React Logo" /> */}
+              <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Dreamlink</span>
             </Navbar.Brand>
             <div className="flex md:order-2">
               <Dropdown
@@ -98,17 +98,22 @@ export default function Home() {
         </header>
         <div className="flex flex-1 overflow-hidden">
           <SideNavbar />
-          <main className="flex-1 overflow-y-auto p-6">
-            <DreamInput
-              input={input}
-              handleInputChange={handleInputChange}
-              handleSubmit={handleSubmit}
-              isLoading={isLoading}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-              {dreams.map((dream, index) => (
-                <DreamAnalysisCard key={index} dream={dream} />
-              ))}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="max-w-7xl mx-auto">
+              <DreamInput
+                input={input}
+                handleInputChange={handleInputChange}
+                handleSubmit={handleSubmit}
+                isLoading={isLoading}
+              />
+              <hr className="my-6" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {dreams.map((dream, index) => (
+                  <div key={index} className="w-full max-w-sm mx-auto">
+                    <DreamAnalysisCard dream={dream} />
+                  </div>
+                ))}
+              </div>
             </div>
           </main>
         </div>
