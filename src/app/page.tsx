@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Navbar, Dropdown, Avatar } from "flowbite-react";
-import DreamAnalysisCard from "./components/OpenAIAnalysisCard";
-import DreamInput from "./components/DreamInput";
-import { SideNavbar } from "./components/Sidebar";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { useChat } from 'ai/react';
+import { AnimatePresence } from 'framer-motion';
+import DreamInput from "./components/DreamInput";
+import { SideNavbar } from "./components/Sidebar";
+import LoadingDreamCard from "./components/LoadingDreamCard";
+import AnimatedDreamCard from "./components/AnimatedDreamCard";
 
 interface Verse {
   reference: string;
@@ -18,7 +20,13 @@ interface DreamAnalysis {
   interpretation: string;
   tags: string[];
   verses: Verse[];
-  originalDream: string; // Add this line
+  originalDream: string;
+}
+
+interface DreamItem {
+  id: number;
+  status: 'loading' | 'complete';
+  data?: DreamAnalysis;
 }
 
 function ErrorFallback({ error }: FallbackProps) {
@@ -33,7 +41,7 @@ function ErrorFallback({ error }: FallbackProps) {
 
 export default function Home() {
   console.log("Home component rendering");
-  const [dreams, setDreams] = useState<DreamAnalysis[]>([]);
+  const [dreamItems, setDreamItems] = useState<DreamItem[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, setMessages } = useChat({
@@ -45,41 +53,44 @@ export default function Home() {
           const responseData: DreamAnalysis = await response.json();
           console.log('Parsed API response:', responseData);
           
-          // Ensure verses array is present
           if (!Array.isArray(responseData.verses)) {
             responseData.verses = [];
           }
 
-           // Retrieve the original dream from localStorage
-           const originalDream = localStorage.getItem('lastDreamInput') || '';
+          const originalDream = localStorage.getItem('lastDreamInput') || '';
+          responseData.originalDream = originalDream;
 
-           responseData.originalDream = originalDream;
-
-          setDreams(prevDreams => [...prevDreams, responseData]);
+          setDreamItems(prevItems => prevItems.map(item => 
+            item.status === 'loading' ? { ...item, status: 'complete', data: responseData } : item
+          ));
           setError(null);
         } catch (err) {
           console.error('Error parsing response:', err);
           setError('Failed to parse the dream analysis. Please try again.');
+          setDreamItems(prevItems => prevItems.filter(item => item.status !== 'loading'));
         }
       } else {
         console.error('API response not ok:', response.statusText);
         const errorData = await response.json();
         setError(`Error: ${errorData.error}. ${errorData.details || ''}`);
+        setDreamItems(prevItems => prevItems.filter(item => item.status !== 'loading'));
       }
     },
     onError: (error) => {
       console.error('Chat error:', error);
       setError(`An error occurred: ${error.message}`);
+      setDreamItems(prevItems => prevItems.filter(item => item.status !== 'loading'));
     },
   });
 
-  // Custom handle submit to save the original dream input
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     localStorage.setItem('lastDreamInput', input);
+    const newDreamItem: DreamItem = { id: Date.now(), status: 'loading' };
+    setDreamItems(prevItems => [...prevItems, newDreamItem]);
     originalHandleSubmit(e);
   };
 
-  console.log("Dreams state:", dreams);
+  console.log("DreamItems state:", dreamItems);
   console.log("Error state:", error);
 
   return (
@@ -133,11 +144,17 @@ export default function Home() {
               />
               <hr className="my-6" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                {dreams.map((dream, index) => (
-                  <div key={index} className="w-full max-w-sm mx-auto">
-                    <DreamAnalysisCard dream={dream} />
-                  </div>
-                ))}
+                <AnimatePresence>
+                  {dreamItems.map((item) => (
+                    <div key={item.id} className="w-full max-w-sm mx-auto">
+                      {item.status === 'loading' ? (
+                        <LoadingDreamCard />
+                      ) : item.data ? (
+                        <AnimatedDreamCard dream={item.data} />
+                      ) : null}
+                    </div>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
           </main>
