@@ -1,29 +1,28 @@
 "use client"
 
 import { useState } from "react";
-import { Navbar, Dropdown, Avatar, HR } from "flowbite-react";
+import { Navbar, Dropdown, Avatar } from "flowbite-react";
 import DreamAnalysisCard from "./components/OpenAIAnalysisCard";
 import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { useChat } from 'ai/react';
 
-// Define the structure of a dream analysis
-interface DreamInterpretation {
-  verse: string;
+interface Verse {
+  reference: string;
   text: string;
-  explanation: string;
-  book: string;
 }
 
 interface DreamAnalysis {
   title: string;
-  summary: string;
+  interpretation: string;
   tags: string[];
-  interpretation: DreamInterpretation[];
+  verses: Verse[];
+  originalDream: string; // Add this line
 }
 
 function ErrorFallback({ error }: FallbackProps) {
+  console.error("Error caught by boundary:", error);
   return (
     <div role="alert" className="p-4">
       <p>Something went wrong:</p>
@@ -33,10 +32,11 @@ function ErrorFallback({ error }: FallbackProps) {
 }
 
 export default function Home() {
+  console.log("Home component rendering");
   const [dreams, setDreams] = useState<DreamAnalysis[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat({
+  const { messages, input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading, setMessages } = useChat({
     api: '/api/chat',
     onResponse: async (response) => {
       console.log('API Response received:', response);
@@ -45,11 +45,15 @@ export default function Home() {
           const responseData: DreamAnalysis = await response.json();
           console.log('Parsed API response:', responseData);
           
-          // Ensure interpretation array contains text property
-          responseData.interpretation = responseData.interpretation.map(item => ({
-            ...item,
-            text: item.text || "" // Provide a default value if text is missing
-          }));
+          // Ensure verses array is present
+          if (!Array.isArray(responseData.verses)) {
+            responseData.verses = [];
+          }
+
+           // Retrieve the original dream from localStorage
+           const originalDream = localStorage.getItem('lastDreamInput') || '';
+
+           responseData.originalDream = originalDream;
 
           setDreams(prevDreams => [...prevDreams, responseData]);
           setError(null);
@@ -69,13 +73,21 @@ export default function Home() {
     },
   });
 
+  // Custom handle submit to save the original dream input
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    localStorage.setItem('lastDreamInput', input);
+    originalHandleSubmit(e);
+  };
+
+  console.log("Dreams state:", dreams);
+  console.log("Error state:", error);
+
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <div className="flex flex-col h-screen">
         <header className="z-10">
           <Navbar fluid rounded>
             <Navbar.Brand href="https://flowbite-react.com">
-              {/* <img src="/favicon.svg" className="mr-3 h-6 sm:h-9" alt="Flowbite React Logo" /> */}
               <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Dreamlink</span>
             </Navbar.Brand>
             <div className="flex md:order-2">
