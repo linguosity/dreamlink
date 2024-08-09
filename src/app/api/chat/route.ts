@@ -1,16 +1,46 @@
 import OpenAI from "openai";
-import { StreamingTextResponse } from 'ai';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
+import { StreamingTextResponse } from 'ai'; // Make sure to import this
 
 const openai = new OpenAI();
 
-export const runtime = 'edge';
+const Verse = z.object({
+  reference: z.string(), // Change this from string() to z.string()
+  text: z.string(),
+});
 
-interface OpenAIError extends Error {
-  status?: number;
-  code?: string;
-  param?: string;
-  type?: string;
-}
+const DreamInterpretation = z.object({
+  title: z.string(),
+  interpretation: z.string(),
+  tags: z.array(z.string()),
+  verses: z.array(Verse),
+});
+
+const systemPrompt = `
+You are a biblical scholar and religious dream interpreter. Analyze the given dream and provide its meaning from the *Tree of Life* Bible with the most relevant supporting verses. Your response should follow this structure:
+
+1. title: A concise title for the dream interpretation.
+2. interpretation: A single, cohesive paragraph that includes:
+   a) A topic sentence stating the main interpretation.
+   b) Supporting sentences with details, citing relevant scriptures using parentheses, e.g., (John 3:16).
+   c) A concluding sentence that wraps up the interpretation.
+3. tags: 3-5 tags capturing key themes, including the names of all Bible books cited, colors or numbers.
+4. verses: An array of all scripture references used, with their full text from the King James Bible.
+
+When interpreting dreams, pay attention to any numbers or number combinations mentioned. Utilize both scripture and gematria to interpret their significance:
+1. Provide a scriptural reference that relates to the number if available.
+2. Explain the gematria significance of the number.
+3. Integrate this interpretation into the overall dream analysis.
+
+When colors are mentioned in the dream, provide their symbolic meanings:
+1. Explain the general symbolic meaning of the color.
+2. If applicable, provide a scriptural reference where the color has significance.
+3. Integrate this color symbolism into the overall dream interpretation.
+
+Remember to keep the interpretation as one flowing paragraph, with scripture references seamlessly integrated using parentheses.
+`;
+
 
 export async function POST(req: Request) {
   console.log('Received request');
@@ -32,56 +62,24 @@ export async function POST(req: Request) {
   }
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",  // Make sure this is the correct model name
+    const completion = await openai.beta.chat.completions.parse({
+      model: "gpt-4o-mini-2024-07-18",
       messages: [
-        {
-          role: "system",
-          content: 
-          `
-            You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the King James Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure:
-
-            {
-              "title": "A concise title for the dream interpretation",
-              "interpretation": "A structured paragraph that includes: 1) A topic sentence stating the main interpretation of the dream. 2) Supporting sentences with details and specific examples, citing at least three relevant scriptures using \`$...$\` tags (e.g., 'This is supported by \`$Proverbs 3:5-6$\`, which emphasizes...'). 3) Logical, coherent thoughts developed in order from one sentence to the next. 4) A concluding sentence that wraps up the interpretation. The paragraph should be concise yet informative, suitable for display in a compact card format.",
-              "tags": ["tag1", "tag2", "tag3"],
-              "verses": [
-                {
-                  "reference": "Book Chapter:Verse",
-                  "text": "Full text of the referenced verse from the King James Bible"
-                }
-              ]
-            }
-
-            Important notes:
-            1. The "interpretation" should be a single, well-structured paragraph following the format described above.
-            2. Use \`$...$\` tags around scripture references in the interpretation text. Do not include the full verse text within the interpretation.
-            3. Include 3-5 relevant tags that capture key themes or elements of the dream and its interpretation. Ensure that the names of all Bible books cited in the interpretation are included as tags.
-            4. The "verses" array should contain all scripture references used in the interpretation, with their full text from the King James Bible. This will be used to populate the popup content in the user interface.
-            5. Ensure that all scripture references are from the King James Version of the Bible.
-      
-          `
-        },
+        { role: "system", content: systemPrompt },
         ...messages
       ],
-      response_format: { type: "json_object" },
-      stream: true,
+      response_format: zodResponseFormat(DreamInterpretation, "dream_interpretation"),
     });
 
-    console.log('OpenAI API call made successfully');
+    const dream_interpretation = completion.choices[0].message.parsed;
+    console.log('Parsed dream interpretation:', dream_interpretation);
+
+    // Convert the parsed object back to a JSON string for streaming
+    const responseString = JSON.stringify(dream_interpretation);
 
     const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        let accumulatedResponse = '';
-
-        for await (const chunk of response) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          accumulatedResponse += content;
-          controller.enqueue(encoder.encode(content));
-        }
-
-        console.log('Full response:', accumulatedResponse);
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(responseString));
         controller.close();
       },
     });
@@ -90,22 +88,16 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error('Error calling OpenAI API:', error);
     
-    let errorMessage = 'An unknown error occurred';
-    let statusCode = 500;
-
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      
-      // Check if it's an OpenAI error
-      const openAIError = error as OpenAIError;
-      if (openAIError.status) {
-        statusCode = openAIError.status;
-      }
+    if (error instanceof z.ZodError) {
+      return new Response(
+        JSON.stringify({ error: 'Response validation failed', details: error.errors }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     return new Response(
-      JSON.stringify({ error: 'Error processing request', details: errorMessage }),
-      { status: statusCode, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Error processing request', details: (error as Error).message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

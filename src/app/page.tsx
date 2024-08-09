@@ -9,19 +9,7 @@ import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
 import LoadingDreamCard from "./components/LoadingDreamCard";
 import AnimatedDreamCard from "./components/AnimatedDreamCard";
-
-interface Verse {
-  reference: string;
-  text: string;
-}
-
-interface DreamAnalysis {
-  title: string;
-  interpretation: string;
-  tags: string[];
-  verses: Verse[];
-  originalDream: string;
-}
+import { DreamAnalysis } from './types/dreamAnalysis';
 
 interface DreamItem {
   id: number;
