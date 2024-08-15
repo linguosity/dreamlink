@@ -12,12 +12,12 @@ export const createClient = (request: NextRequest) => {
     },
   });
 
-  console.log("createClient: Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log("createClient: Supabase Anon Key:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "Exists" : "Missing");
+  console.log("createClient: Supabase URL:", process.env.SUPABASE_URL);
+  console.log("createClient: Supabase Anon Key:", process.env.SUPABASE_ANON_KEY ? "Exists" : "Missing");
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
