@@ -7,6 +7,7 @@
         "Kanban",
         "openai",
         "Provideth",
+        "supabase",
         "tailwindcss"
     ]
 }

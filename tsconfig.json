@@ -27,7 +27,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/component/OpenAIAnalysisCard.tsx", // Add this line
-    "src/app/component/Sidebar.tsx" // Add this line
+    "src/app/component/Sidebar.tsx", // Add this line
+    "src/**/*",  // Include all .ts and .tsx files in the src directory
+    "pages/**/*"  // Include files in the pages directory
   ],
   "exclude": ["node_modules"]
 }

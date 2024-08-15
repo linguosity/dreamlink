@@ -1,57 +1,48 @@
 import React, { useState } from 'react';
-import { Card, Badge, Popover, Modal } from 'flowbite-react';
-import { DreamAnalysis, Verse } from '../types/dreamAnalysis';
+import { Card, Badge, Popover, Modal, Button, TextInput, Textarea } from 'flowbite-react';
+import { DreamAnalysis, Verse, InterpretationElement } from '../types/dreamAnalysis';
 
-interface DreamAnalysisCardProps {
+interface OpenAIAnalysisCardProps {
   dream: DreamAnalysis;
+  onDelete: () => void;
+  onUpdate: (updatedDream: DreamAnalysis) => void;
 }
-
-interface PopoverContent {
-  type: 'Popover';
-  props: {
-    trigger: 'hover';
-    content: string;
-    children: string[];
-  };
-}
-
-type InterpretationElement = string | PopoverContent;
 
 const renderInterpretation = (interpretation: string | InterpretationElement[], verses: Verse[]): JSX.Element[] => {
+  if (!interpretation) return [];
+
   if (typeof interpretation === 'string') {
-    // Split the interpretation into parts, keeping both parenthesized references and bare references
-    const parts = interpretation.split(/(\([^)]+\)|\b(?:Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Ruth|1 Samuel|2 Samuel|1 Kings|2 Kings|1 Chronicles|2 Chronicles|Ezra|Nehemiah|Esther|Job|Psalms|Proverbs|Ecclesiastes|Song of Solomon|Isaiah|Jeremiah|Lamentations|Ezekiel|Daniel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Matthew|Mark|Luke|John|Acts|Romans|1 Corinthians|2 Corinthians|Galatians|Ephesians|Philippians|Colossians|1 Thessalonians|2 Thessalonians|1 Timothy|2 Timothy|Titus|Philemon|Hebrews|James|1 Peter|2 Peter|1 John|2 John|3 John|Jude|Revelation)\s+\d+(?::\d+)?(?:-\d+)?)/);
-    
+    const parts = interpretation.split(/(<popover>[^<]+<\/popover>)/g);
+
     return parts.map((part, index) => {
-      // Check if the part is a reference (either parenthesized or bare)
-      if (part.startsWith('(') && part.endsWith(')')) {
-        part = part.slice(1, -1); // Remove parentheses
-      }
-      
-      const verse = verses.find(v => v.reference === part || v.reference.includes(part));
-      if (verse) {
-        return (
-          <Popover
-            key={index}
-            trigger="hover"
-            content={
-              <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-                <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{verse.reference}</h3>
+      if (part.startsWith('<popover>') && part.endsWith('</popover>')) {
+        const verseReference = part.slice(9, -10);
+        const verse = verses.find(v => v.reference === verseReference);
+
+        if (verse) {
+          return (
+            <Popover
+              key={index}
+              trigger="hover"
+              content={
+                <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{verse.reference}</h3>
+                  </div>
+                  <div className="px-3 py-2">
+                    <p>{verse.text}</p>
+                  </div>
                 </div>
-                <div className="px-3 py-2">
-                  <p>{verse.text}</p>
-                </div>
-              </div>
-            }
-          >
-            <span className="text-blue-500 underline cursor-pointer">{part}</span>
-          </Popover>
-        );
+              }
+            >
+              <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
+            </Popover>
+          );
+        }
       }
       return <span key={index}>{part}</span>;
     });
-  }  else if (Array.isArray(interpretation)) {
+  } else if (Array.isArray(interpretation)) {
     return interpretation.map((element, index) => {
       if (typeof element === 'string') {
         return <span key={index}>{element}</span>;
@@ -79,10 +70,11 @@ const renderInterpretation = (interpretation: string | InterpretationElement[], 
       return null;
     }).filter((element): element is JSX.Element => element !== null);
   }
+
   return [];
 };
 
-const FullDreamModal: React.FC<{ dream: DreamAnalysis; isOpen: boolean; onClose: () => void }> = ({ dream, isOpen, onClose }) => {
+const FullDreamModal: React.FC<{ dream: DreamAnalysis; isOpen: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void }> = ({ dream, isOpen, onClose, onEdit, onDelete }) => {
   return (
     <Modal dismissible show={isOpen} onClose={onClose}>
       <Modal.Header>{dream.title}</Modal.Header>
@@ -107,13 +99,6 @@ const FullDreamModal: React.FC<{ dream: DreamAnalysis; isOpen: boolean; onClose:
               <p>{dream.colorSymbolism}</p>
             </>
           )}
-          <hr className="my-4" />
-          <h3 className="text-lg font-semibold">Verses (Tree of Life Version)</h3>
-          {dream.verses.map((verse, index) => (
-            <div key={index} className="mb-2">
-              <strong>{verse.reference}:</strong> {verse.text}
-            </div>
-          ))}
         </div>
       </Modal.Body>
       <Modal.Footer>
@@ -122,45 +107,137 @@ const FullDreamModal: React.FC<{ dream: DreamAnalysis; isOpen: boolean; onClose:
             <Badge key={index} color="indigo">#{tag}</Badge>
           ))}
         </div>
+        <div className="flex justify-end space-x-2 mt-4">
+          <Button color="light" onClick={onEdit}>
+            Edit
+          </Button>
+          <Button color="failure" onClick={onDelete}>
+            Delete
+          </Button>
+        </div>
       </Modal.Footer>
     </Modal>
   );
 };
 
-const OpenAIAnalysisCard: React.FC<DreamAnalysisCardProps> = ({ dream }) => {
+const EditDreamModal: React.FC<{ dream: DreamAnalysis; isOpen: boolean; onClose: () => void; onSave: (updatedDream: DreamAnalysis) => void }> = ({ dream, isOpen, onClose, onSave }) => {
+  const [editedDream, setEditedDream] = useState<DreamAnalysis>(dream);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditedDream(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tags = e.target.value.split(',').map(tag => tag.trim());
+    setEditedDream(prev => ({ ...prev, tags }));
+  };
+
+  const handleSave = () => {
+    onSave(editedDream);
+    onClose();
+  };
+
+  return (
+    <Modal dismissible show={isOpen} onClose={onClose}>
+      <Modal.Header>Edit Dream Analysis</Modal.Header>
+      <Modal.Body>
+        <div className="space-y-6">
+          <div>
+            <label htmlFor="title" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+            <TextInput
+              id="title"
+              name="title"
+              value={editedDream.title}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="interpretation" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Interpretation</label>
+            <Textarea
+              id="interpretation"
+              name="interpretation"
+              value={typeof editedDream.interpretation === 'string' ? editedDream.interpretation : JSON.stringify(editedDream.interpretation)}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="tags" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tags (comma-separated)</label>
+            <TextInput
+              id="tags"
+              name="tags"
+              value={editedDream.tags.join(', ')}
+              onChange={handleTagsChange}
+            />
+          </div>
+        </div>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={handleSave}>Save</Button>
+        <Button color="gray" onClick={onClose}>
+          Cancel
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const truncatedInterpretation = typeof dream.interpretation === 'string' 
-    ? dream.interpretation.split('.')[0] + '.'
-    : dream.interpretation.slice(0, 1);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleCardClick = () => {
     setIsModalOpen(true);
   };
 
+  const handleEdit = () => {
+    setIsModalOpen(false);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    setIsModalOpen(false);
+    onDelete();
+  };
+
+  const renderInterpretationPreview = () => {
+    if (typeof dream.interpretation === 'string') {
+      // Remove HTML-like tags and get the first sentence
+      const cleanInterpretation = dream.interpretation.replace(/<[^>]*>/g, '');
+      const firstSentence = cleanInterpretation.split('.')[0];
+      return firstSentence ? `${firstSentence}.` : 'No interpretation available.';
+    }
+    return 'No interpretation available.';
+  };
+
   return (
     <>
       <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow duration-300" onClick={handleCardClick}>
-        <h5 className="text-lg font-bold mb-2">{dream.title}</h5>
+        <h3 className="text-lg font-bold mb-2">{dream.title}</h3>
         <div className="mb-4">
-          {renderInterpretation(truncatedInterpretation, dream.verses)}
+          {renderInterpretationPreview()}
         </div>
-        {dream.gematriaInterpretation && (
-          <div className="mb-2">
-            <Badge color="purple">Gematria</Badge>
-          </div>
-        )}
-        {dream.colorSymbolism && (
-          <div className="mb-2">
-            <Badge color="yellow">Color Symbolism</Badge>
-          </div>
-        )}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mt-4">
           {dream.tags.map((tag, index) => (
             <Badge key={index} color="indigo">#{tag}</Badge>
           ))}
         </div>
       </Card>
-      <FullDreamModal dream={dream} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <FullDreamModal 
+        dream={dream} 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+      <EditDreamModal 
+        dream={dream} 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        onSave={onUpdate}
+      />
     </>
   );
 };

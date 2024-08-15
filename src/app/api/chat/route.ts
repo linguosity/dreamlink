@@ -1,12 +1,17 @@
 import OpenAI from "openai";
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
-import { StreamingTextResponse } from 'ai'; // Make sure to import this
+import { createClient } from '@supabase/supabase-js'
 
 const openai = new OpenAI();
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 const Verse = z.object({
-  reference: z.string(), // Change this from string() to z.string()
+  reference: z.string(),
   text: z.string(),
 });
 
@@ -41,8 +46,14 @@ When colors are mentioned in the dream, provide their symbolic meanings:
 Remember to keep the interpretation as one flowing paragraph, with scripture references seamlessly integrated using parentheses.
 `;
 
-
 export async function POST(req: Request) {
+  if (!supabase) {
+    return new Response(
+      JSON.stringify({ error: 'Supabase client not initialized' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  
   console.log('Received request');
   
   let body;
@@ -51,14 +62,16 @@ export async function POST(req: Request) {
     console.log('Parsed request body:', JSON.stringify(body, null, 2));
   } catch (error) {
     console.error('Error parsing request body:', error);
-    return new Response('Invalid JSON', { status: 400 });
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), 
+      { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
-  const { messages } = body;
+  const { messages, user_id } = body;
 
-  if (!messages || !Array.isArray(messages)) {
-    console.error('Invalid messages array:', messages);
-    return new Response('Invalid messages array', { status: 400 });
+  if (!messages || !Array.isArray(messages) || !user_id) {
+    console.error('Invalid request body:', body);
+    return new Response(JSON.stringify({ error: 'Invalid request body' }), 
+      { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
   try {
@@ -74,19 +87,30 @@ export async function POST(req: Request) {
     const dream_interpretation = completion.choices[0].message.parsed;
     console.log('Parsed dream interpretation:', dream_interpretation);
 
-    // Convert the parsed object back to a JSON string for streaming
-    const responseString = JSON.stringify(dream_interpretation);
+    // Save the dream interpretation to Supabase
+    const { data, error } = await supabase
+      .from('dream_entries')
+      .insert({
+        user_id: user_id,
+        analysis: JSON.stringify(dream_interpretation)
+      });
 
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(new TextEncoder().encode(responseString));
-        controller.close();
-      },
-    });
+    if (error) {
+      console.error('Error saving dream to Supabase:', error);
+      return new Response(
+        JSON.stringify({ error: 'Error saving dream', details: error.message }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
-    return new StreamingTextResponse(stream);
+    console.log('Dream saved successfully:', data);
+
+    // Return the dream interpretation as a JSON response
+    return new Response(JSON.stringify(dream_interpretation), 
+      { status: 200, headers: { 'Content-Type': 'application/json' } });
+
   } catch (error: unknown) {
-    console.error('Error calling OpenAI API:', error);
+    console.error('Error processing request:', error);
     
     if (error instanceof z.ZodError) {
       return new Response(
