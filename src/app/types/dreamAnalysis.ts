@@ -6,6 +6,7 @@ export interface Verse {
   }
   
   export interface DreamAnalysis {
+    id: string;  // Add this line
     title: string;
     interpretation: string;
     tags: string[];
@@ -55,7 +56,7 @@ export interface Verse {
   }
   
   export interface DreamItem {
-    id: number;
+    id: string;
     status: 'loading' | 'complete';
     data?: DreamAnalysis;
   }

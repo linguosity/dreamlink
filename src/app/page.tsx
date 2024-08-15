@@ -87,9 +87,10 @@ export default function Home() {
       console.log("Dreams fetched successfully:", data);
   
       const fetchedDreams: DreamItem[] = data.map((entry: DreamAnalysisEntry) => ({
-        id: entry.id,
+        id: entry.id.toString(),
         status: 'complete',
         data: {
+          id: entry.id.toString(),  // Add this line
           title: entry.title,
           interpretation: entry.dream_entries && entry.dream_entries.length > 0
             ? entry.dream_entries[0].analysis
@@ -326,7 +327,7 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
     e.preventDefault();
     console.log("Submitting new dream");
     localStorage.setItem('lastDreamInput', input);
-    const newDreamItem: DreamItem = { id: Date.now(), status: 'loading' };
+    const newDreamItem: DreamItem = { id: Date.now().toString(), status: 'loading' };
     setDreamItems(prevItems => [newDreamItem, ...prevItems]);
     
     try {
@@ -340,23 +341,71 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
     }
   };
 
-  const handleDeleteDream = async (id: number) => {
-    console.log("Deleting dream with id:", id);
+  const handleDeleteDream = async (id: string) => {
+    console.log("handleDeleteDream called with id:", id);
     try {
-      const { error } = await supabase
+      // 1. Delete associated verses
+      console.log("Attempting to delete associated verses");
+      const { error: versesError } = await supabase
+        .from('verses')
+        .delete()
+        .eq('dream_analysis_id', id);
+      if (versesError) throw versesError;
+      console.log("Associated verses deleted successfully");
+  
+      // 2. Delete associated dream tags
+      console.log("Attempting to delete associated dream tags");
+      const { error: tagsError } = await supabase
+        .from('dream_tags')
+        .delete()
+        .eq('dream_analysis_id', id);
+      if (tagsError) throw tagsError;
+      console.log("Associated dream tags deleted successfully");
+  
+      // 3. Delete associated dream entries
+      console.log("Attempting to delete associated dream entries");
+      const { error: entriesError } = await supabase
+        .from('dream_entries')
+        .delete()
+        .eq('dream_analysis_id', id);
+      if (entriesError) throw entriesError;
+      console.log("Associated dream entries deleted successfully");
+  
+      // 4. Delete associated interpretation elements (if this table exists)
+      console.log("Attempting to delete associated interpretation elements");
+      const { error: interpretationError } = await supabase
+        .from('interpretation_elements')
+        .delete()
+        .eq('dream_analysis_id', id);
+      if (interpretationError && interpretationError.code !== 'PGRST116') throw interpretationError;
+      console.log("Associated interpretation elements deleted successfully");
+  
+      // 5. Finally, delete the dream analysis itself
+      console.log("Attempting to delete dream analysis");
+      const { error: dreamError } = await supabase
         .from('dream_analyses')
         .delete()
         .eq('id', id);
-      if (error) throw error;
-      setDreamItems(prevItems => prevItems.filter((item) => item.id !== id));
-      console.log("Dream deleted successfully");
+      if (dreamError) throw dreamError;
+      console.log("Dream analysis deleted successfully");
+  
+      // Update the UI
+      setDreamItems(prevItems => {
+        const newItems = prevItems.filter((item) => item.id !== id);
+        console.log("Updated dreamItems:", newItems);
+        return newItems;
+      });
+  
+      console.log("Dream and all associated data deleted successfully");
     } catch (error) {
       console.error('Error deleting dream:', error);
       setError('Failed to delete dream. Please try again.');
+    } finally {
+      console.log("Delete operation completed");
     }
   };
 
-  const handleUpdateDream = async (id: number, updatedDream: DreamAnalysis) => {
+  const handleUpdateDream = async (id: string, updatedDream: DreamAnalysis) => {
     console.log("Updating dream with id:", id);
     try {
       const { error } = await supabase

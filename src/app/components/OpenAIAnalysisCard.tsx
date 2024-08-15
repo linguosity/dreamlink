@@ -4,7 +4,7 @@ import { DreamAnalysis, Verse, InterpretationElement } from '../types/dreamAnaly
 
 interface OpenAIAnalysisCardProps {
   dream: DreamAnalysis;
-  onDelete: () => void;
+  onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamAnalysis) => void;
 }
 
@@ -198,8 +198,11 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   };
 
   const handleDelete = () => {
+    console.log('Delete button clicked for dream:', dream.id);
     setIsModalOpen(false);
-    onDelete();
+    console.log('Calling onDelete function');
+    onDelete(dream.id);  // Update this line
+    console.log('onDelete function called');
   };
 
   const renderInterpretationPreview = () => {

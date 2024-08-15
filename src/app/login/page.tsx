@@ -145,7 +145,7 @@ export default function LoginPage() {
               </Label>
             </div>
           )}
-          <Button type="submit">{isLogin ? "Sign In" : "Register"}</Button>
+          <Button color="light" type="submit">{isLogin ? "Sign In" : "Register"}</Button>
         </form>
         <div className="mt-4">
           <Button color="light" className="w-full" onClick={handleGoogleSignIn}>
