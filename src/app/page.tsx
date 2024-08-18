@@ -1,18 +1,23 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { Navbar, Dropdown, Avatar, Button } from "flowbite-react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { Session } from '@supabase/supabase-js';
-import { useSupabase } from '@/hooks/useSupabase';
 import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
 import LoadingDreamCard from "./components/LoadingDreamCard";
 import OpenAIAnalysisCard from "./components/OpenAIAnalysisCard";
-import { DreamAnalysis, DreamAnalysisEntry, DreamItem, UserProfile, InterpretationElement, Verse } from './types/dreamAnalysis';
+import { createClient } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
+import { DreamItem, UserProfile } from './types/dreamAnalysis';
+
+// Define a type for the props
+interface HomeProps {
+  session: Session | null;
+  userProfile: UserProfile | null;
+  initialDreamItems: DreamItem[];
+  error: string | null;
+}
 
 function ErrorFallback({ error }: FallbackProps) {
   console.error("Error caught by boundary:", error);
@@ -24,335 +29,43 @@ function ErrorFallback({ error }: FallbackProps) {
   );
 }
 
-export default function Home() {
+export default function Home({
+  session,
+  userProfile,
+  initialDreamItems,
+  error: serverError,
+}: HomeProps) {
   console.log("Home component function called");
-  const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [dreamItems, setDreamItems] = useState<DreamItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dreamItems, setDreamItems] = useState<DreamItem[]>(initialDreamItems);
+  const [error, setError] = useState<string | null>(serverError);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { supabase, session: supabaseSession } = useSupabase();
-
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    console.log("Fetching user profile for userId:", userId);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-  
-      if (error) {
-        console.error('Supabase error fetching user profile:', error);
-        throw error;
-      }
-      
-      if (!data) {
-        console.error('No user profile data returned');
-        throw new Error('No user profile data returned');
-      }
-  
-      console.log("User profile fetched successfully:", data);
-      setUserProfile(data as UserProfile);
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      throw error;
-    }
-  }, [supabase]);
-  
-  const fetchDreams = useCallback(async (userId: string) => {
-    console.log("Fetching dreams for userId:", userId);
-    try {
-      const { data, error } = await supabase
-        .from('dream_analyses')
-        .select(`
-          *,
-          verses (*),
-          dream_tags (
-            tags (*)
-          ),
-          interpretation_elements (*),
-          dream_entries (*)
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-  
-      if (error) throw error;
-  
-      if (!data || !Array.isArray(data)) {
-        throw new Error('No dream data returned or data is not an array');
-      }
-  
-      console.log("Dreams fetched successfully:", data);
-  
-      const fetchedDreams: DreamItem[] = data.map((entry: DreamAnalysisEntry) => ({
-        id: entry.id.toString(),
-        status: 'complete',
-        data: {
-          id: entry.id.toString(),  // Add this line
-          title: entry.title,
-          interpretation: entry.dream_entries && entry.dream_entries.length > 0
-            ? entry.dream_entries[0].analysis
-            : '',
-          tags: entry.dream_tags?.map(dt => dt.tags.name) || [],
-          verses: entry.verses || [],
-          originalDream: entry.original_dream,
-          gematriaInterpretation: entry.gematria_interpretation || undefined,
-          colorSymbolism: entry.color_symbolism || undefined
-        }
-      }));
-  
-      setDreamItems(fetchedDreams);
-    } catch (error) {
-      console.error('Error in fetchDreams:', error);
-      throw error;
-    }
-  }, [supabase]);
-  
-      
-
-  useEffect(() => {
-    console.log("Initial useEffect triggered");
-    if (!supabase) {
-      console.error('Supabase client is not initialized');
-      return;
-    }
-  
-    let isMounted = true;
-  
-    const fetchSessionAndData = async () => {
-      try {
-        setIsLoading(true);
-        console.log("Set isLoading(true) called");
-  
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-  
-        if (sessionError) {
-          console.error('Error fetching session:', sessionError);
-          throw sessionError;
-        }
-  
-        console.log("Session fetch result:", session ? "Session found" : "No session");
-        if (isMounted) setSession(session);
-  
-        if (session) {
-          console.log("Fetching user profile and dreams");
-          try {
-            await fetchUserProfile(session.user.id);
-            await fetchDreams(session.user.id);
-            console.log("User profile and dreams fetched successfully");
-          } catch (error) {
-            console.error("Error fetching user data:", error);
-            if (isMounted) setError('Failed to fetch user data. Please try again.');
-          }
-        } else {
-          console.log("No session, redirecting to login");
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error('Error in fetchSessionAndData:', error);
-        if (isMounted) setError('Failed to set up session. Please try again.');
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-          console.log("Set isLoading(false) called in finally block");
-        }
-      }
-    };
-  
-    fetchSessionAndData();
-  
-    return () => {
-      console.log("Home component unmounting");
-      isMounted = false;
-    };
-  }, [supabase, router, fetchUserProfile, fetchDreams]);
 
   useEffect(() => {
     console.log('Current session state:', session ? 'Session exists' : 'No session');
-    console.log('Current loading state:', isLoading);
     console.log('Current error state:', error);
     console.log('Current user profile:', userProfile);
     console.log('Current dream items:', dreamItems);
-    console.log("Initial useEffect triggered");
-    console.log("Supabase client:", supabase ? "Initialized" : "Not initialized");
-    console.log("Supabase session:", supabaseSession ? "Exists" : "Does not exist");
-  
-  }, [session, isLoading, error, userProfile, dreamItems]);
+  }, [session, error, userProfile, dreamItems]);
 
-  const saveDreamToSupabase = useCallback(async (dreamData: DreamAnalysis) => {
-    if (session) {
-        try {
-            const userId = session.user.id;
-            console.log("Authenticated user's ID:", userId);
-
-            // 1. Insert into dream_analyses table
-            const { data: dreamAnalysis, error: analysisError } = await supabase
-                .from('dream_analyses')
-                .insert({
-                    user_id: userId,
-                    title: dreamData.title,
-                    original_dream: dreamData.originalDream,
-                    gematria_interpretation: dreamData.gematriaInterpretation,
-                    color_symbolism: dreamData.colorSymbolism
-                })
-                .select()
-                .single();
-
-            if (analysisError || !dreamAnalysis) {
-                throw new Error(`Failed to save dream analysis: ${analysisError?.message}`);
-            }
-
-            const dreamAnalysisId = dreamAnalysis.id;
-
-            // 2. Insert verses
-            if (dreamData.verses && dreamData.verses.length > 0) {
-                const { error: versesError } = await supabase
-                    .from('verses')
-                    .insert(dreamData.verses.map((verse: Verse) => ({
-                        dream_analysis_id: dreamAnalysisId,
-                        reference: verse.reference,
-                        text: verse.text
-                    })));
-
-                if (versesError) throw versesError;
-            }
-
-            // 3. Insert tags
-            if (dreamData.tags && dreamData.tags.length > 0) {
-                const { data: existingTags, error: tagsError } = await supabase
-                    .from('tags')
-                    .upsert(dreamData.tags.map(tag => ({ name: tag })), { onConflict: 'name' })
-                    .select();
-
-                if (tagsError || !existingTags) throw tagsError;
-
-                const { error: dreamTagsError } = await supabase
-                    .from('dream_tags')
-                    .insert(existingTags.map(tag => ({
-                        dream_analysis_id: dreamAnalysisId,
-                        tag_id: tag.id
-                    })));
-
-                if (dreamTagsError) throw dreamTagsError;
-            }
-
-            // 4. Insert interpretation into dream_entries table
-            if (dreamData.interpretation) {
-                const { error: entriesError } = await supabase
-                    .from('dream_entries')
-                    .insert({
-                        user_id: userId,
-                        dream_analysis_id: dreamAnalysisId,
-                        analysis: dreamData.interpretation  // <-- Save only the interpretation text here
-                    });
-
-                if (entriesError) throw entriesError;
-            }
-
-            console.log("Dream analysis saved successfully");
-            return dreamAnalysis;
-        } catch (error) {
-            console.error("Error saving dream to Supabase:", error);
-            throw error;
-        }
-    }
-}, [session, supabase]);
-
-
-const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading: isChatLoading, setMessages } = useChat({
-  api: '/api/chat',
-  body: { user_id: session?.user?.id },
-  onResponse: async (response: Response) => {
-    console.log('API Response received:', response);
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('Failed to get reader from response body');
-    }
-
-    try {
-      let responseText = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        responseText += new TextDecoder().decode(value);
-      }
-
-      console.log('Raw response text:', responseText);
-
-      const responseData: DreamAnalysis = JSON.parse(responseText);
-      console.log('Parsed API response:', responseData);
-      
-      if (!Array.isArray(responseData.verses)) {
-        responseData.verses = [];
-      }
-
-      const originalDream = localStorage.getItem('lastDreamInput') || '';
-      responseData.originalDream = originalDream;
-
-      // Save the dream to Supabase
-      if (session) {
-        await saveDreamToSupabase(responseData);
-      } else {
-        console.error('No active session. Unable to save dream.');
-        setError('No active session. Unable to save dream.');
-      }
-
-      setDreamItems(prevItems => prevItems.map(item => 
-        item.status === 'loading' ? { ...item, status: 'complete', data: responseData } : item
-      ));
-      setError(null);
-
-      // Update the messages state
-      setMessages(prevMessages => [
-        ...prevMessages,
-        {
-          id: Date.now().toString(),
-          role: 'assistant' as const,
-          content: JSON.stringify(responseData)
-        }
-      ]);
-    } catch (err) {
-      console.error('Error processing response:', err);
-      setError('Failed to process the dream analysis. Please try again.');
-      setDreamItems(prevItems => prevItems.filter(item => item.status !== 'loading'));
-    } finally {
-      reader.releaseLock();
-    }
-  },
-  onError: (error) => {
-    console.error('Chat error:', error);
-    setError(`An error occurred: ${error.message}`);
-    setDreamItems(prevItems => prevItems.filter(item => item.status !== 'loading'));
-  },
-});
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Submitting new dream");
-    localStorage.setItem('lastDreamInput', input);
-    const newDreamItem: DreamItem = { id: Date.now().toString(), status: 'loading' };
-    setDreamItems(prevItems => [newDreamItem, ...prevItems]);
-    
-    try {
-      console.log("Current session:", session);
-      console.log("Current user ID:", session?.user?.id);
-      await originalHandleSubmit(e);
-    } catch (error) {
-      console.error('Error submitting dream:', error);
-      setError('Failed to submit dream. Please try again.');
-      setDreamItems(prevItems => prevItems.filter(item => item.id !== newDreamItem.id));
+  const handleSignOut = async () => {
+    console.log("Signing out");
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error signing out:', error);
+      setError('Failed to sign out. Please try again.');
+    } else {
+      console.log("Sign out successful, redirecting to login");
+      router.push('/login');
     }
   };
 
   const handleDeleteDream = async (id: string) => {
     console.log("handleDeleteDream called with id:", id);
     try {
+      const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+
       // 1. Delete associated verses
       console.log("Attempting to delete associated verses");
       const { error: versesError } = await supabase
@@ -361,7 +74,7 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         .eq('dream_analysis_id', id);
       if (versesError) throw versesError;
       console.log("Associated verses deleted successfully");
-  
+
       // 2. Delete associated dream tags
       console.log("Attempting to delete associated dream tags");
       const { error: tagsError } = await supabase
@@ -370,7 +83,7 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         .eq('dream_analysis_id', id);
       if (tagsError) throw tagsError;
       console.log("Associated dream tags deleted successfully");
-  
+
       // 3. Delete associated dream entries
       console.log("Attempting to delete associated dream entries");
       const { error: entriesError } = await supabase
@@ -379,7 +92,7 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         .eq('dream_analysis_id', id);
       if (entriesError) throw entriesError;
       console.log("Associated dream entries deleted successfully");
-  
+
       // 4. Delete associated interpretation elements (if this table exists)
       console.log("Attempting to delete associated interpretation elements");
       const { error: interpretationError } = await supabase
@@ -388,7 +101,7 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         .eq('dream_analysis_id', id);
       if (interpretationError && interpretationError.code !== 'PGRST116') throw interpretationError;
       console.log("Associated interpretation elements deleted successfully");
-  
+
       // 5. Finally, delete the dream analysis itself
       console.log("Attempting to delete dream analysis");
       const { error: dreamError } = await supabase
@@ -397,26 +110,21 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         .eq('id', id);
       if (dreamError) throw dreamError;
       console.log("Dream analysis deleted successfully");
-  
+
       // Update the UI
-      setDreamItems(prevItems => {
-        const newItems = prevItems.filter((item) => item.id !== id);
-        console.log("Updated dreamItems:", newItems);
-        return newItems;
-      });
-  
-      console.log("Dream and all associated data deleted successfully");
+      setDreamItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (error) {
       console.error('Error deleting dream:', error);
       setError('Failed to delete dream. Please try again.');
-    } finally {
-      console.log("Delete operation completed");
     }
   };
 
-  const handleUpdateDream = async (id: string, updatedDream: DreamAnalysis) => {
+  const handleUpdateDream = async (id: string, updatedDream: DreamItem['data'] | undefined) => {
+    if (!updatedDream) return;
     console.log("Updating dream with id:", id);
     try {
+      const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+
       const { error } = await supabase
         .from('dream_analyses')
         .update({
@@ -427,25 +135,16 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
         })
         .eq('id', id);
       if (error) throw error;
-      setDreamItems(prevItems => prevItems.map(item => 
-        item.id === id ? { ...item, data: updatedDream } : item
-      ));
+
+      setDreamItems(prevItems =>
+        prevItems.map(item =>
+          item.id === id ? { ...item, data: updatedDream } : item
+        )
+      );
       console.log("Dream updated successfully");
     } catch (error) {
       console.error('Error updating dream:', error);
       setError('Failed to update dream. Please try again.');
-    }
-  };
-
-  const handleSignOut = async () => {
-    console.log("Signing out");
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-      setError('Failed to sign out. Please try again.');
-    } else {
-      console.log("Sign out successful, redirecting to login");
-      router.push('/login');
     }
   };
 
@@ -479,12 +178,12 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
                   arrowIcon={false}
                   inline
                   label={
-                    <Avatar alt="User settings" img={userProfile?.avatar_url || session.user.user_metadata?.avatar_url} rounded />
+                    <Avatar alt="User settings" img={userProfile?.avatar_url || session.user?.user_metadata?.avatar_url} rounded />
                   }
                 >
                   <Dropdown.Header>
-                    <span className="block text-sm">{userProfile?.full_name || session.user.user_metadata?.full_name}</span>
-                    <span className="block truncate text-sm font-medium">{session.user.email}</span>
+                    <span className="block text-sm">{userProfile?.full_name || session.user?.user_metadata?.full_name}</span>
+                    <span className="block truncate text-sm font-medium">{session.user?.email}</span>
                   </Dropdown.Header>
                   <Dropdown.Item>Dashboard</Dropdown.Item>
                   <Dropdown.Item>Settings</Dropdown.Item>
@@ -509,11 +208,12 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
           <SideNavbar />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="max-w-7xl mx-auto">
-              <DreamInput
-                input={input}
-                handleInputChange={handleInputChange}
-                handleSubmit={handleSubmit}
-                isLoading={isChatLoading}
+              <DreamInput 
+                // Assuming you have the necessary props for DreamInput
+                input="" 
+                handleInputChange={() => {}} 
+                handleSubmit={() => {}} 
+                isLoading={false} 
               />
               <hr className="my-6" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -539,4 +239,65 @@ const { input, handleInputChange, handleSubmit: originalHandleSubmit, isLoading:
       </div>
     </ErrorBoundary>
   );
+}
+
+export async function getServerSideProps() {
+  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+
+    if (!session) {
+      return {
+        redirect: {
+          destination: '/login',
+          permanent: false,
+        },
+      };
+    }
+
+    const { data: userProfile, error: userProfileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (userProfileError) throw userProfileError;
+
+    const { data: dreamItems, error: dreamItemsError } = await supabase
+      .from('dream_analyses')
+      .select(`
+        *,
+        verses (*),
+        dream_tags (
+          tags (*)
+        ),
+        interpretation_elements (*),
+        dream_entries (*)
+      `)
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (dreamItemsError) throw dreamItemsError;
+
+    return {
+      props: {
+        session,
+        userProfile,
+        initialDreamItems: dreamItems,
+        error: null,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+    return {
+      props: {
+        session: null,
+        userProfile: null,
+        initialDreamItems: [],
+        error: (error as Error).message || 'Failed to load data',
+      },
+    };
+  }
 }
