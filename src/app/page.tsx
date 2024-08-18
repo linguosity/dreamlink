@@ -6,7 +6,7 @@ import { Navbar, Dropdown, Avatar, Button } from "flowbite-react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { useChat } from 'ai/react';
 import { AnimatePresence } from 'framer-motion';
-import { createClient } from '@/utils/supabase/client';
+import { useSupabase } from '@/app/components/SupabaseProvider';
 import { Session } from '@supabase/supabase-js';
 import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
@@ -32,7 +32,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const supabase = createClient();
+  const { supabase } = useSupabase();
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     console.log("Fetching user profile for userId:", userId);
