@@ -32,7 +32,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { supabase } = useSupabase();
+  const { supabase, session: supabaseSession } = useSupabase();
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     console.log("Fetching user profile for userId:", userId);
@@ -114,23 +114,28 @@ export default function Home() {
 
   useEffect(() => {
     console.log("Initial useEffect triggered");
+    if (!supabase) {
+      console.error('Supabase client is not initialized');
+      return;
+    }
+  
     let isMounted = true;
-
+  
     const fetchSessionAndData = async () => {
       try {
         setIsLoading(true);
         console.log("Set isLoading(true) called");
-
+  
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
+  
         if (sessionError) {
           console.error('Error fetching session:', sessionError);
           throw sessionError;
         }
-
+  
         console.log("Session fetch result:", session ? "Session found" : "No session");
         if (isMounted) setSession(session);
-
+  
         if (session) {
           console.log("Fetching user profile and dreams");
           try {
@@ -146,8 +151,8 @@ export default function Home() {
           router.push("/login");
         }
       } catch (error) {
-          console.error('Error in fetchSessionAndData:', error);
-          if (isMounted) setError('Failed to set up session. Please try again.');
+        console.error('Error in fetchSessionAndData:', error);
+        if (isMounted) setError('Failed to set up session. Please try again.');
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -155,14 +160,14 @@ export default function Home() {
         }
       }
     };
-
+  
     fetchSessionAndData();
-
+  
     return () => {
       console.log("Home component unmounting");
       isMounted = false;
     };
-  }, [supabase.auth, router, fetchUserProfile, fetchDreams]);
+  }, [supabase, router, fetchUserProfile, fetchDreams]);
 
   useEffect(() => {
     console.log('Current session state:', session ? 'Session exists' : 'No session');
