@@ -175,6 +175,10 @@ export default function Home() {
     console.log('Current error state:', error);
     console.log('Current user profile:', userProfile);
     console.log('Current dream items:', dreamItems);
+    console.log("Initial useEffect triggered");
+    console.log("Supabase client:", supabase ? "Initialized" : "Not initialized");
+    console.log("Supabase session:", supabaseSession ? "Exists" : "Does not exist");
+  
   }, [session, isLoading, error, userProfile, dreamItems]);
 
   const saveDreamToSupabase = useCallback(async (dreamData: DreamAnalysis) => {
