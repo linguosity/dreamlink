@@ -1,8 +1,8 @@
-
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { HomeClient } from './HomeClient'
 import { DreamItem, UserProfile } from './types/dreamAnalysis'
+import { SupabaseProvider } from './components/SupabaseProvider'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,11 +45,13 @@ export default async function Home() {
   }
 
   return (
-    <HomeClient
-      session={session}
-      userProfile={userProfile}
-      initialDreamItems={initialDreamItems}
-      error={error}
-    />
+    <SupabaseProvider>
+      <HomeClient
+        session={session}
+        userProfile={userProfile}
+        initialDreamItems={initialDreamItems}
+        error={error}
+      />
+    </SupabaseProvider>
   )
 }

@@ -1,8 +1,6 @@
-// src/app/HomeClient.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar, Dropdown, Avatar, Button } from "flowbite-react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -12,6 +10,7 @@ import { SideNavbar } from "./components/Sidebar";
 import LoadingDreamCard from "./components/LoadingDreamCard";
 import OpenAIAnalysisCard from "./components/OpenAIAnalysisCard";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useSupabase } from './components/SupabaseProvider';
 
 import { Session } from '@supabase/supabase-js';
 import { DreamItem, UserProfile } from './types/dreamAnalysis';
@@ -25,15 +24,33 @@ interface HomeClientProps {
 
 export function HomeClient({
   session,
-  userProfile,
+  userProfile: initialUserProfile,
   initialDreamItems,
   error: serverError,
 }: HomeClientProps) {
   const [dreamItems, setDreamItems] = useState<DreamItem[]>(initialDreamItems);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialUserProfile);
   const [error, setError] = useState<string | null>(serverError);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const { data: supabaseData, error: supabaseError } = useSupabase();
+
+  useEffect(() => {
+    if (supabaseData) {
+      // Update state with any new data from Supabase
+      // This depends on what data you're fetching in your API route
+      if (supabaseData.dreamItems) {
+        setDreamItems(supabaseData.dreamItems);
+      }
+      if (supabaseData.userProfile) {
+        setUserProfile(supabaseData.userProfile);
+      }
+    }
+    if (supabaseError) {
+      setError(supabaseError);
+    }
+  }, [supabaseData, supabaseError]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();

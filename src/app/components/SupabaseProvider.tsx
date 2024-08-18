@@ -1,29 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchSupabaseData } from '@/utils/supabase/client';
 
-export default function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() => {
-    console.log("SupabaseProvider: Initializing Supabase client for non-sensitive operations");
-    try {
-      return createClient();
-    } catch (error) {
-      console.error("Error creating Supabase client:", error);
-      return null;
-    }
-  });
+const SupabaseContext = createContext<any>(null);
 
-  if (!supabase) {
-    return <div>Error initializing Supabase client. Check the console for more details.</div>;
-  }
+export function SupabaseProvider({ children }: { children: React.ReactNode }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  console.log("SupabaseProvider: Rendering with children");
+  useEffect(() => {
+    fetchSupabaseData()
+      .then(result => setData(result.data))
+      .catch(err => setError(err.message));
+  }, []);
 
   return (
-    <SessionContextProvider supabaseClient={supabase}>
+    <SupabaseContext.Provider value={{ data, error }}>
       {children}
-    </SessionContextProvider>
+    </SupabaseContext.Provider>
   );
 }
+
+export const useSupabase = () => useContext(SupabaseContext);
