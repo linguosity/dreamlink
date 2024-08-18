@@ -3,8 +3,11 @@ import { cookies } from "next/headers";
 
 export const createClient = () => {
   const cookieStore = cookies();
-
+  console.log("Supabase URL:", process.env.SUPABASE_URL);
+  console.log("Supabase Anon Key:", process.env.SUPABASE_ANON_KEY ? "Exists" : "Missing");
+  
   return createServerClient(
+    
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!,
     {
