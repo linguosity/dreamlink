@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { Navbar, Dropdown, Avatar, Button } from "flowbite-react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { AnimatePresence } from 'framer-motion';
@@ -8,6 +10,7 @@ import { SideNavbar } from "./components/Sidebar";
 import LoadingDreamCard from "./components/LoadingDreamCard";
 import OpenAIAnalysisCard from "./components/OpenAIAnalysisCard";
 import { createClient } from '@supabase/supabase-js';
+
 import { Session } from '@supabase/supabase-js';
 import { DreamItem, UserProfile } from './types/dreamAnalysis';
 
@@ -19,12 +22,12 @@ interface HomeProps {
   error: string | null;
 }
 
+// Error fallback component definition
 function ErrorFallback({ error }: FallbackProps) {
-  console.error("Error caught by boundary:", error);
   return (
-    <div role="alert" className="p-4">
+    <div role="alert">
       <p>Something went wrong:</p>
-      <pre className="mt-2 p-2 bg-red-100 rounded">{error.message}</pre>
+      <pre>{error.message}</pre>
     </div>
   );
 }
@@ -239,65 +242,4 @@ export default function Home({
       </div>
     </ErrorBoundary>
   );
-}
-
-export async function getServerSideProps() {
-  const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-
-  try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) throw sessionError;
-
-    if (!session) {
-      return {
-        redirect: {
-          destination: '/login',
-          permanent: false,
-        },
-      };
-    }
-
-    const { data: userProfile, error: userProfileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-
-    if (userProfileError) throw userProfileError;
-
-    const { data: dreamItems, error: dreamItemsError } = await supabase
-      .from('dream_analyses')
-      .select(`
-        *,
-        verses (*),
-        dream_tags (
-          tags (*)
-        ),
-        interpretation_elements (*),
-        dream_entries (*)
-      `)
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
-
-    if (dreamItemsError) throw dreamItemsError;
-
-    return {
-      props: {
-        session,
-        userProfile,
-        initialDreamItems: dreamItems,
-        error: null,
-      },
-    };
-  } catch (error) {
-    console.error('Error in getServerSideProps:', error);
-    return {
-      props: {
-        session: null,
-        userProfile: null,
-        initialDreamItems: [],
-        error: (error as Error).message || 'Failed to load data',
-      },
-    };
-  }
 }
