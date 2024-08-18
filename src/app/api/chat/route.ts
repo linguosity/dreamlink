@@ -1,14 +1,9 @@
 import OpenAI from "openai";
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/utils/supabase/server';
 
 const openai = new OpenAI();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-)
 
 const Verse = z.object({
   reference: z.string(),
@@ -47,12 +42,7 @@ Remember to keep the interpretation as one flowing paragraph, with scripture ref
 `;
 
 export async function POST(req: Request) {
-  if (!supabase) {
-    return new Response(
-      JSON.stringify({ error: 'Supabase client not initialized' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+  const supabase = createClient();
   
   console.log('Received request');
   
