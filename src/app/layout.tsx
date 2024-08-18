@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { SidebarProvider } from "../context/SidebarContext";
-import SupabaseProvider from "./components/SupabaseProvider";  // Add this import
+import SupabaseProvider from "./components/SupabaseProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,11 +28,11 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <SupabaseProvider>  {/* Add this line */}
+        <SupabaseProvider>
           <SidebarProvider>
             {children}
           </SidebarProvider>
-        </SupabaseProvider>  {/* Add this line */}
+        </SupabaseProvider>
         <Script
           src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.4.1/flowbite.min.js"
           strategy="lazyOnload"
