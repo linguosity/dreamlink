@@ -4,13 +4,17 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url)
-  const code = requestUrl.searchParams.get('code')
+  try{
+    const requestUrl = new URL(request.url)
+    const code = requestUrl.searchParams.get('code')
 
-  if (code) {
-    const supabase = createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    if (code) {
+      const supabase = createClient()
+      await supabase.auth.exchangeCodeForSession(code)
+    }
+
+    return NextResponse.redirect(requestUrl.origin)
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 })
   }
-
-  return NextResponse.redirect(requestUrl.origin)
 }
