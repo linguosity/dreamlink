@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button, Checkbox, Label, TextInput } from "flowbite-react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,12 +13,12 @@ export default function LoginPage() {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     const checkSession = async () => {
       console.log("LoginPage: Checking session state");
-      const response = await fetch('/api/auth/session');
-      const session = await response.json();
+      const { data: { session } } = await supabase.auth.getSession();
       console.log('LoginPage: Current session state:', session ? 'Logged in' : 'Not logged in');
       if (session) {
         console.log("LoginPage: Session exists, redirecting to home");
@@ -25,7 +26,7 @@ export default function LoginPage() {
       }
     };
     checkSession();
-  }, [router]);
+  }, [router, supabase]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,20 +34,14 @@ export default function LoginPage() {
     try {
       if (isLogin) {
         console.log('LoginPage: Attempting to sign in...');
-        const response = await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await response.json();
-        console.log('LoginPage: Sign in result:', data);
-        if (!response.ok) {
-          if (data.error.includes('Email not confirmed')) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
             setError('Please confirm your email address before signing in.');
           } else {
-            throw new Error(data.error);
+            throw new Error(error.message);
           }
-        } else if (data.session) {
+        } else {
           console.log('LoginPage: Sign in successful, redirecting to home...');
           router.push('/');
         }
@@ -56,22 +51,12 @@ export default function LoginPage() {
           return;
         }
         console.log('LoginPage: Attempting to sign up...');
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await response.json();
-        console.log('LoginPage: Sign up result:', data);
-        if (!response.ok) {
-          throw new Error(data.error);
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+          throw new Error(error.message);
         }
-        if (data.user && !data.session) {
-          setError('Please check your email to confirm your account before signing in.');
-        } else if (data.session) {
-          console.log('LoginPage: Sign up successful, redirecting to home...');
-          router.push('/');
-        }
+        console.log('LoginPage: Sign up successful, redirecting to home...');
+        router.push('/');
       }
     } catch (error) {
       console.error('LoginPage: Authentication error:', error);
@@ -82,15 +67,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       console.log('LoginPage: Initiating Google Sign-In');
-      const response = await fetch('/api/auth/google');
-      const data = await response.json();
-      console.log('LoginPage: Sign-In Response:', data);
-      if (!response.ok) {
-        throw new Error(data.error);
-      }
-      if (data.url) {
-        window.location.href = data.url;
-      }
+      const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+      if (error) throw new Error(error.message);
     } catch (error) {
       console.error('LoginPage: Google sign-in error:', error);
       setError('An error occurred with Google sign-in. Please try again.');

@@ -10,6 +10,15 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "DreamLink",
   description: "Analyze your dreams with AI",
+  openGraph: {
+    url: '/',
+    title: 'DreamLink',
+    description: 'Analyze your dreams with AI',
+  },
+  // The correct way to add the external CSS link
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -29,9 +38,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <SupabaseProvider>
-          <SidebarProvider>
-            {children}
-          </SidebarProvider>
+          <SidebarProvider>{children}</SidebarProvider>
         </SupabaseProvider>
         <Script
           src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.4.1/flowbite.min.js"
