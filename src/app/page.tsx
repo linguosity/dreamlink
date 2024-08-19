@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies })
-  
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -47,10 +47,9 @@ export default async function Home() {
   return (
     <SupabaseProvider>
       <HomeClient
-        session={session}
-        userProfile={userProfile}
+        initialUserProfile={userProfile}
         initialDreamItems={initialDreamItems}
-        error={error}
+        initialError={error}
       />
     </SupabaseProvider>
   )

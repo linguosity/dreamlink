@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -9,57 +9,52 @@ import DreamInput from "./components/DreamInput";
 import { SideNavbar } from "./components/Sidebar";
 import LoadingDreamCard from "./components/LoadingDreamCard";
 import OpenAIAnalysisCard from "./components/OpenAIAnalysisCard";
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useSupabase } from './components/SupabaseProvider';
-
-import { Session } from '@supabase/supabase-js';
+import { useSupabase } from '@/hooks/useSupabase';
 import { DreamItem, UserProfile } from './types/dreamAnalysis';
+import { AuthError } from '@supabase/supabase-js';
 
 interface HomeClientProps {
-  session: Session | null;
-  userProfile: UserProfile | null;
+  initialUserProfile: UserProfile | null;
   initialDreamItems: DreamItem[];
-  error: string | null;
+  initialError: string | null;
 }
 
 export function HomeClient({
-  session,
-  userProfile: initialUserProfile,
+  initialUserProfile,
   initialDreamItems,
-  error: serverError,
+  initialError,
 }: HomeClientProps) {
   const [dreamItems, setDreamItems] = useState<DreamItem[]>(initialDreamItems);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(initialUserProfile);
-  const [error, setError] = useState<string | null>(serverError);
+  const [error, setError] = useState<string | null>(initialError);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
-  const { data: supabaseData, error: supabaseError } = useSupabase();
+  const { supabase, session } = useSupabase();
 
   useEffect(() => {
-    if (supabaseData) {
-      // Update state with any new data from Supabase
-      // This depends on what data you're fetching in your API route
-      if (supabaseData.dreamItems) {
-        setDreamItems(supabaseData.dreamItems);
-      }
-      if (supabaseData.userProfile) {
-        setUserProfile(supabaseData.userProfile);
-      }
-    }
-    if (supabaseError) {
-      setError(supabaseError);
-    }
-  }, [supabaseData, supabaseError]);
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setError('Failed to sign out. Please try again.');
-    } else {
+    if (!session) {
       router.push('/login');
     }
+  }, [session, router]);
+
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.push('/login');
+    } catch (error) {
+      if (error instanceof AuthError) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+
 
   const handleDeleteDream = async (id: string) => {
     try {
@@ -135,7 +130,6 @@ export function HomeClient({
       setIsLoading(false);
     }
   };
-
   if (isLoading) {
     return <div>Loading... Please wait while we set up your session.</div>;
   }
@@ -155,76 +149,7 @@ export function HomeClient({
         <pre className="mt-2 p-2 bg-red-100 rounded">{error.message}</pre>
       </div>
     )}>
-      <div className="flex flex-col h-screen">
-        <header className="z-10">
-          <Navbar fluid rounded>
-            <Navbar.Brand href="/">
-              <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Dreamlink</span>
-            </Navbar.Brand>
-            <div className="flex md:order-2">
-              {session ? (
-                <Dropdown
-                  arrowIcon={false}
-                  inline
-                  label={
-                    <Avatar alt="User settings" img={userProfile?.avatar_url || session.user?.user_metadata?.avatar_url} rounded />
-                  }
-                >
-                  <Dropdown.Header>
-                    <span className="block text-sm">{userProfile?.full_name || session.user?.user_metadata?.full_name}</span>
-                    <span className="block truncate text-sm font-medium">{session.user?.email}</span>
-                  </Dropdown.Header>
-                  <Dropdown.Item>Dashboard</Dropdown.Item>
-                  <Dropdown.Item>Settings</Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
-                </Dropdown>
-              ) : (
-                <Button onClick={() => router.push('/login')}>Sign in</Button>
-              )}
-              <Navbar.Toggle />
-            </div>
-            <Navbar.Collapse>
-              <Navbar.Link href="#" active>Home</Navbar.Link>
-              <Navbar.Link href="#">About</Navbar.Link>
-              <Navbar.Link href="#">Services</Navbar.Link>
-              <Navbar.Link href="#">Pricing</Navbar.Link>
-              <Navbar.Link href="#">Contact</Navbar.Link>
-            </Navbar.Collapse>
-          </Navbar>
-        </header>
-        <div className="flex flex-1 overflow-hidden">
-          <SideNavbar />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="max-w-7xl mx-auto">
-              <DreamInput 
-                input="" 
-                handleInputChange={() => {}} 
-                handleSubmit={() => {}} 
-                isLoading={false} 
-              />
-              <hr className="my-6" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                <AnimatePresence>
-                  {dreamItems.map((item) => (
-                    <div key={item.id} className="w-full max-w-sm mx-auto">
-                      {item.status === 'loading' ? (
-                        <LoadingDreamCard />
-                      ) : item.data ? (
-                        <OpenAIAnalysisCard 
-                          dream={item.data} 
-                          onDelete={() => handleDeleteDream(item.id)}
-                          onUpdate={(updatedDream) => handleUpdateDream(item.id, updatedDream)}
-                        />
-                      ) : null}
-                    </div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
+      {/* ... (keep the rest of your JSX) */}
     </ErrorBoundary>
   );
 }
