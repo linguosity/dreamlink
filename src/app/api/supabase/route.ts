@@ -1,17 +1,22 @@
-// src/app/api/supabase/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
+
+export const dynamic = 'force-dynamic'; // Ensures the route is not statically optimized
 
 export async function GET() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+  try {
+    const supabase = createClient();
 
-  const { data, error } = await supabase.from('profiles').select('*');
+    const { data, error } = await supabase.from('profiles').select('*');
   
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+    if (error) {
+      console.error('Supabase query error:', error);
+      return NextResponse.json({ error: 'An error occurred while fetching profiles' }, { status: 500 });
+    }
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error('Unexpected error in Supabase API route:', error);
+    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+  }
 }
