@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
     try {
         const requestUrl = new URL(request.url)
@@ -9,16 +11,15 @@ export async function GET(request: Request) {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-            redirectTo: `${requestUrl.origin}/auth/callback`,
+                redirectTo: `${requestUrl.origin}/auth/callback`,
             },
         })
 
-        if (error) {
-            return NextResponse.json({ error: error.message }, { status: 400 })
-        }
+        if (error) throw error
 
-        return NextResponse.json({ url: data.url })
+        return NextResponse.redirect(data.url)
     } catch (error: any) {
-  return NextResponse.json({ error: error.message }, { status: 400 })
-}
+        console.error('Google sign-in error:', error)
+        return NextResponse.json({ error: error.message }, { status: 400 })
+    }
 }

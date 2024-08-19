@@ -5,7 +5,14 @@ import { SessionContextProvider, useSessionContext } from '@supabase/auth-helper
 import { useState } from 'react'
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabaseClient] = useState(() => createClientComponentClient())
+  const [supabaseClient] = useState(() => {
+    try {
+      return createClientComponentClient()
+    } catch (error) {
+      console.error('Error creating Supabase client:', error)
+      throw error
+    }
+  })
 
   return (
     <SessionContextProvider supabaseClient={supabaseClient}>
