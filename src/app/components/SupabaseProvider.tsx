@@ -1,21 +1,24 @@
 'use client'
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { SessionContextProvider, useSessionContext } from '@supabase/auth-helpers-react'
-import { useState } from 'react'
+import { SessionContextProvider } from '@supabase/auth-helpers-react'
+import { useState, useEffect } from 'react'
 
 export function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabaseClient] = useState(() => {
-    try {
-      return createClientComponentClient({
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      })
-    } catch (error) {
-      console.error('Error creating Supabase client:', error)
-      throw error
+  const [supabaseClient] = useState(() => createClientComponentClient())
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      await supabaseClient.auth.getUser()
+      setIsLoading(false)
     }
-  })
+    checkUser()
+  }, [supabaseClient])
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <SessionContextProvider supabaseClient={supabaseClient}>
@@ -23,5 +26,3 @@ export function SupabaseProvider({ children }: { children: React.ReactNode }) {
     </SessionContextProvider>
   )
 }
-
-export const useSupabase = useSessionContext
