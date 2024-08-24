@@ -5,18 +5,20 @@ import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-export interface VerseInterpretation {
-  verse: string;
-  text: string;
-  explanation: string;
-  book: string;
+export interface Explanation {
+  sentence: string;
+  citation: {
+    verse: string;
+    text: string;
+    book: string;
+  };
 }
 
 export interface DreamInterpretation {
   title: string;
-  summary: string;
+  topic_sentence: string;
+  explanations: Explanation[];
   tags: string[];
-  interpretation: VerseInterpretation[];
 }
 
 export async function submitDream(dreamText: string): Promise<DreamInterpretation | null>  {
@@ -32,7 +34,7 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: `You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the King James Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure: { "title": "A short title for the dream interpretation", "summary": "A concise 1-2 line summary of the user's dream", "tags": ["tag1", "tag2", "tag3", ...], "interpretation": [ { "verse": "Book Chapter:Verse", "text": "Actual text of the verse from the Bible", "explanation": "Detailed explanation of how the verse relates to the dream", "book": "Name of the Bible book" }, ... ] } Provide 3-5 relevant verse interpretations for each dream.` },
+        { role: "system", content: `You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the King James Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure: { "title": "A short title for the dream interpretation", "topic_sentence": "A topic sentence describing what the symbols in the dream represent", "explanations": [ { "sentence": "A supporting sentence explaining the dream symbol with a reference to a specific Bible verse", "citation": { "verse": "Book Chapter:Verse", "text": "Actual text of the verse from the Bible", "book": "Name of the Bible book" } }, ... ], "tags": ["tag1", "tag2", "tag3", ...] } Provide 3-5 relevant verse explanations for each dream.` },
         { role: "user", content: dreamText }
       ],
       response_format: { type: "json_object" },
@@ -61,7 +63,7 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
       .from('interpretation_elements')
       .insert({
         dream_analysis_id: dreamAnalysis.id,
-        content: dreamInterpretation.summary,
+        content: dreamInterpretation.topic_sentence,
         is_popover: false,
         order_index: 0
       });
@@ -71,12 +73,12 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
     // Insert verses
     const { error: versesError } = await supabase
       .from('verses')
-      .insert(dreamInterpretation.interpretation.map(verse => ({
+      .insert(dreamInterpretation.explanations.map(explanation => ({
         dream_analysis_id: dreamAnalysis.id,
-        reference: verse.verse,
-        text: verse.text,
-        explanation: verse.explanation,
-        book: verse.book
+        reference: explanation.citation.verse,
+        text: explanation.citation.text,
+        explanation: explanation.sentence,
+        book: explanation.citation.book
       })));
 
     if (versesError) throw versesError;
@@ -113,10 +115,10 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
       if (dreamTagError) throw dreamTagError;
     }
 
-    return dreamInterpretation; // Correct
+    return dreamInterpretation;
 
   } catch (error) {
     console.error('Error submitting dream:', error);
-    return null; // Correct
+    return null;
   }
 }

@@ -16,7 +16,7 @@ export default function DreamInputWrapper({ userId }: DreamInputWrapperProps) {
 
   return (
     <DreamInputForm
-      onSubmit={handleSubmit}
+      userId={userId}
       userFullName="User Name" // Replace with actual user name
     />
   );

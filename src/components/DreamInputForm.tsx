@@ -1,17 +1,18 @@
-"use client"
+'use client';
 
 import React, { useState } from 'react';
 import { TextInput, Button, Spinner } from 'flowbite-react';
 import { DreamInterpretation, DreamItem, Json } from '../types/dreamAnalysis';
 import { useRouter } from 'next/navigation';
 import { useDreams } from './ClientDreamsWrapper';
+import { submitDream } from '../app/actions';
 
 interface DreamInputFormProps {
-  onSubmit: (dreamText: string) => Promise<DreamInterpretation | null>;
+  userId: string;
   userFullName: string;
 }
 
-export default function DreamInputForm({ onSubmit, userFullName }: DreamInputFormProps) {
+export default function DreamInputForm({ userId, userFullName }: DreamInputFormProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -24,18 +25,21 @@ export default function DreamInputForm({ onSubmit, userFullName }: DreamInputFor
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const result = await onSubmit(input);
+    const result = await submitDream(input);
     setIsLoading(false);
     if (result) {
       setInput('');
       // Convert DreamInterpretation to DreamItem
       const dreamItem: DreamItem = {
         id: '', // This will be set by Supabase
-        user_id: '', // This will be set by Supabase
+        user_id: userId,
         original_dream: input,
         title: result.title,
-        color_symbolism: null, // Not provided by OpenAI
-        gematria_interpretation: null, // Not provided by OpenAI
+        topic_sentence: result.topic_sentence,
+        explanations: result.explanations,
+        tags: result.tags,
+        color_symbolism: null,
+        gematria_interpretation: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         status: 'complete',
@@ -43,18 +47,18 @@ export default function DreamInputForm({ onSubmit, userFullName }: DreamInputFor
         dream_entries: [{ 
           analysis: result as unknown as Json
         }],
-        verses: result.interpretation.map(verse => ({
+        verses: result.explanations.map(explanation => ({
           id: '',
           dream_analysis_id: '',
-          reference: verse.verse,
-          text: verse.text,
-          explanation: verse.explanation,
-          book: verse.book
+          reference: explanation.citation.verse,
+          text: explanation.citation.text,
+          explanation: explanation.sentence,
+          book: explanation.citation.book
         })),
         interpretation_elements: [{
           id: '',
           dream_analysis_id: '',
-          content: result.summary,
+          content: result.topic_sentence,
           is_popover: false,
           order_index: 0,
           popover_content: null
