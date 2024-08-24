@@ -1,23 +1,31 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { SupabaseProvider } from "../app/components/SupabaseProvider" // Adjust the import path as needed
+// src/app/layout.tsx
 
-const inter = Inter({ subsets: ["latin"] });
+import { Metadata } from 'next'
+import NavBar from '@/components/NavBar'
+import { createSupabaseServerComponentClient } from "@/lib/utils/supabase/server-client";
+import 'flowbite/dist/flowbite.css';
+import '../app/global.css'; // Adjust this path if your global CSS is located elsewhere
 
 export const metadata: Metadata = {
-  title: "DreamLink",
-  description: "Analyze your dreams with AI",
-};
+  title: 'DreamLink',
+  description: 'Connect with your dreams',
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  console.log("RootLayout: Rendering root layout");
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = createSupabaseServerComponentClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
   return (
     <html lang="en">
-      <body>
-        <SupabaseProvider>
+      <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {session && <NavBar />}
+        <main className="container mx-auto px-4">
           {children}
-        </SupabaseProvider>
+        </main>
       </body>
     </html>
   )
