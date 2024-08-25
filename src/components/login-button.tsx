@@ -12,22 +12,19 @@ export default function LoginButton(props: { nextUrl?: string }) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${location.origin}/auth/callback?next=${
-            props.nextUrl || ""
-          }`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       
       console.log('Sign-in attempt result:', { data, error });
-
+  
       if (error) {
         throw error;
       }
-
+  
       console.log('Sign-in successful, redirecting...');
     } catch (error) {
       console.error('Detailed sign-in error:', error);
-      // You can add user-facing error handling here, e.g., showing an error message
       alert('An error occurred during sign-in. Please try again.');
     }
   };
