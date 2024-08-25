@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
 
   const publicRoutes = ['/login', '/auth/callback', '/auth/auth-error'];
 
-  const isPublicRoute = publicRoutes.some(route => 
+  const isPublicRoute = publicRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   );
 
