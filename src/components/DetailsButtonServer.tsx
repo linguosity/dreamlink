@@ -2,10 +2,8 @@ import { createSupabaseServerComponentClient } from "../lib/utils/supabase/serve
 import DetailsButtonClient from "../components/DetailsButtonClient"
 
 export default async function DetailsButtonServer() {
-  const {
-    data: { session },
-    error,
-  } = await createSupabaseServerComponentClient().auth.getSession();
+  const supabase = createSupabaseServerComponentClient();
+  const { data: { session } } = await supabase.auth.getSession();
 
   return <DetailsButtonClient session={session} />;
 }
