@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 
 import { Metadata } from 'next'
-import NavBar from '@/components/NavBar'
+import NavBar from '../components/NavBar'
 import { createSupabaseServerComponentClient } from "@/lib/utils/supabase/server-client";
 import 'flowbite/dist/flowbite.css';
 import '../app/global.css'; // Adjust this path if your global CSS is located elsewhere
