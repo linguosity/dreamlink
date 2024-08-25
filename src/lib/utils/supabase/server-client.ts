@@ -3,27 +3,27 @@ import { type NextRequest, type NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { Database } from './database.types'; // Import the generated Database types
+import { Database } from './database.types';
 
-// Create a Supabase client for server-side use, with optional component flag
 export function createSupabaseServerClient(component: boolean = false) {
-  cookies().getAll(); // Access all cookies (required for Next.js 13+)
-  return createServerClient<Database>(  // Add <Database> generic type here
-    process.env.NEXT_PUBLIC_SUPABASE_URL!, // Supabase project URL
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Supabase anonymous key
+  cookies().getAll();
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Supabase Anon Key set:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        // Custom cookie handling functions
         get(name: string) {
-          return getCookie(name, { cookies }); // Get a cookie
+          return getCookie(name, { cookies });
         },
         set(name: string, value: string, options: CookieOptions) {
-          if (component) return; // Don't set cookies in server components
-          setCookie(name, value, { cookies, ...options }); // Set a cookie
+          if (component) return;
+          setCookie(name, value, { cookies, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          if (component) return; // Don't remove cookies in server components
-          deleteCookie(name, { cookies, ...options }); // Remove a cookie
+          if (component) return;
+          deleteCookie(name, { cookies, ...options });
         },
       },
     }
@@ -32,8 +32,10 @@ export function createSupabaseServerClient(component: boolean = false) {
 
 // Create a Supabase client specifically for server components
 export function createSupabaseServerComponentClient() {
-  cookies().getAll(); // Access all cookies
-  return createSupabaseServerClient(true); // Create client with component flag
+  cookies().getAll();
+  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not Set');
+  return createSupabaseServerClient(true);
 }
 
 // Create a Supabase client for use in API routes (with request and response objects)
@@ -41,21 +43,21 @@ export function createSupabaseReqResClient(
   req: NextRequest,
   res: NextResponse
 ) {
-  cookies().getAll(); // Access all cookies
-  return createServerClient<Database>(  // Add <Database> generic type here
-    process.env.NEXT_PUBLIC_SUPABASE_URL!, // Supabase project URL
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, // Supabase anonymous key
+  cookies().getAll();
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    
     {
       cookies: {
-        // Custom cookie handling functions for API routes
         get(name: string) {
-          return getCookie(name, { req, res }); // Get a cookie
+          return getCookie(name, { req, res });
         },
         set(name: string, value: string, options: CookieOptions) {
-          setCookie(name, value, { req, res, ...options }); // Set a cookie
+          setCookie(name, value, { req, res, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          setCookie(name, "", { req, res, ...options }); // Remove a cookie by setting empty value
+          setCookie(name, "", { req, res, ...options });
         },
       },
     }
