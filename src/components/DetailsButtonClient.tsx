@@ -1,4 +1,3 @@
-// src/components/DetailsButtonClient.tsx
 "use client";
 import { useState } from "react";
 import { Session } from "@supabase/supabase-js";
