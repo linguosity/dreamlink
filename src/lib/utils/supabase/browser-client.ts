@@ -1,3 +1,4 @@
+// Import necessary functions and types from Supabase
 import { createBrowserClient } from "@supabase/ssr";
 import { Database } from './database.types';
 
