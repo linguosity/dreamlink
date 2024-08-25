@@ -11,8 +11,8 @@
     "postinstall": "npx next telemetry disable"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.0",
-    "@supabase/supabase-js": "^2.45.2",
+    "@supabase/ssr": "^0.0.10",
+  "@supabase/supabase-js": "^2.39.1",
     "ai": "^3.2.37",
     "cookies-next": "^4.2.1",
     "flowbite": "^2.4.1",
@@ -32,6 +32,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "postcss": "^8",

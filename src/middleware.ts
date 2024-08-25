@@ -50,5 +50,5 @@ export async function middleware(request: NextRequest) {
 
 // Configure which routes should be processed by this middleware
 export const config = {
-  matcher: ["/", "/login", "/auth/callback"],
+  matcher: ["/", "/account/:path*"],
 };

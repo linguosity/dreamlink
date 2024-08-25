@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { createSupabaseClient } from '@/lib/utils/supabase/browser-client';
+import { createSupabaseBrowserClient } from '@/lib/utils/supabase/browser-client';
 import { DreamItem } from '../types/dreamAnalysis';
 
 interface ClientDreamsWrapperProps {
@@ -21,7 +21,7 @@ export const useDreams = () => useContext(DreamsContext);
 
 export default function ClientDreamsWrapper({ children, initialDreams }: ClientDreamsWrapperProps) {
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams);
-  const supabase = createSupabaseClient();
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     const channel = supabase

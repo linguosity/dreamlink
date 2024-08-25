@@ -1,4 +1,4 @@
-// components/details-button-client.tsx
+// src/components/DetailsButtonClient.tsx
 "use client";
 import { useState } from "react";
 import { Session } from "@supabase/supabase-js";
@@ -30,7 +30,7 @@ export default function DetailsButtonClient({
               <p>{`email: ${user?.email}`}</p>
               <br />
               <Link href={"/account"}>
-                <button>View Account Page</button>
+                <button>View Dream Journal</button>
               </Link>
               {rawDreams && (
                 <div>
@@ -47,7 +47,7 @@ export default function DetailsButtonClient({
           )}
         </>
       ) : (
-        <p>user is not logged in</p>
+        <p>Please log in to view your details.</p>
       )}
     </>
   );

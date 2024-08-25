@@ -1,28 +1,19 @@
 "use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { createSupabaseBrowserClient } from "@/lib/utils/supabase/browser-client";
 
-export default function LoginButton({ nextUrl = '/' }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+export default function LoginButton(props: { nextUrl?: string }) {
+  const supabase = createSupabaseBrowserClient();
 
   const handleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/auth/google');
-      const data = await response.json();
-      if (data.url) {
-        router.push(data.url);
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-    }
-    setIsLoading(false);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${location.origin}/auth/callback?next=${
+          props.nextUrl || ""
+        }`,
+      },
+    });
   };
 
-  return (
-    <button onClick={handleLogin} disabled={isLoading}>
-      {isLoading ? 'Loading...' : 'Login with Google'}
-    </button>
-  );
+  return <button onClick={handleLogin}>Login</button>;
 }

@@ -11,22 +11,17 @@ export const metadata: Metadata = {
   description: 'Connect with your dreams',
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const supabase = createSupabaseServerComponentClient();
-  const { data: { session } } = await supabase.auth.getSession();
-
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {session && <NavBar />}
-        <main className="container mx-auto px-4">
-          {children}
-        </main>
+      <body>
+        <NavBar />
+        {children}
       </body>
     </html>
-  )
+  );
 }
