@@ -11,10 +11,8 @@
     "postinstall": "npx next telemetry disable"
   },
   "dependencies": {
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/auth-helpers-react": "^0.5.0",
-    "@supabase/ssr": "^0.4.0",
-    "@supabase/supabase-js": "^2.45.1",
+    "@supabase/ssr": "^0.5.0",
+    "@supabase/supabase-js": "^2.45.2",
     "ai": "^3.2.37",
     "cookies-next": "^4.2.1",
     "flowbite": "^2.4.1",
