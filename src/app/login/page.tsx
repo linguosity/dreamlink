@@ -150,7 +150,7 @@ export default function LoginPage() {
           <button
             className="text-cyan-600 hover:underline dark:text-cyan-500"
             onClick={() => setIsLogin(!isLogin)}
-          >
+          > 
             {isLogin ? "Sign up" : "Sign in"}
           </button>
         </p>
