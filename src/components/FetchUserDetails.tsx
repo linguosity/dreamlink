@@ -1,7 +1,8 @@
 import { createSupabaseServerComponentClient } from "../lib/utils/supabase/server-client";
-import DetailsButtonClient from "./DetailsButtonClient";
+import DisplayUserDetails from "./DisplayUserDetails";
+import NavBar from "./NavBar";
 
-export default async function DetailsButtonServer() {
+export default async function FetchUserDetails() {
   const supabase = createSupabaseServerComponentClient();
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -25,5 +26,10 @@ export default async function DetailsButtonServer() {
     error = queryError;
   }
 
-  return <DetailsButtonClient session={session} rawDreams={rawDreams} error={error} />;
+  return (
+    <>
+      <NavBar session={session} />
+      <DisplayUserDetails session={session} rawDreams={rawDreams} error={error} />
+    </>
+  );
 }

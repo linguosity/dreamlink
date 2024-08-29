@@ -4,27 +4,36 @@ import { createSupabaseReqResClient } from "./lib/utils/supabase/server-client";
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
   const supabase = createSupabaseReqResClient(request, res);
-  
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
+  const { data: { session } } = await supabase.auth.getSession();
 
-    console.log('Middleware - Current path:', request.nextUrl.pathname);
-    console.log('Middleware - User:', user ? 'Authenticated' : 'Not authenticated');
+  // Paths that should be accessible only to authenticated users
+  const protectedPaths = ['/'];
 
-    if (!user && request.nextUrl.pathname.startsWith("/account")) {
-      console.log('Middleware - Redirecting to home');
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  // Check if the user is trying to access a protected path
+  const isAccessingProtectedPath = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  );
 
-    console.log('Middleware - Allowing request to proceed');
-    return res;
-  } catch (error) {
-    console.error('Middleware - Error:', error);
-    return res;
+  // Allow access to auth callback route for OAuth flow
+  if (request.nextUrl.pathname.startsWith('/auth/callback')) {
+    return res; // Let the callback route process the OAuth response
   }
+
+  if (!session && isAccessingProtectedPath && request.nextUrl.pathname !== '/login') {
+    // Redirect to login if trying to access a protected path without a session
+    const redirectUrl = new URL('/login', request.url);
+    redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (session && request.nextUrl.pathname === '/login') {
+    // Redirect to home if already logged in and trying to access login page
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: ["/", "/account/:path*"],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

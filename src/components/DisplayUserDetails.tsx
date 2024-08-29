@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import Link from "next/link";
 
-export default function DetailsButtonClient({
+export default function DisplayUserDetails({
   session,
   rawDreams,
   error
