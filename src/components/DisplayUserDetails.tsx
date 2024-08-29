@@ -1,7 +1,12 @@
 "use client";
+
 import { useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import Link from "next/link";
+import { Card, Button } from 'flowbite-react';
+import OpenAIAnalysisCard from './OpenAIAnalysisCard';
+import DreamInputWrapper from "./DreamInputWrapper";
+import { DreamItem } from '@/types/dreamAnalysis';
 
 export default function DisplayUserDetails({
   session,
@@ -9,45 +14,47 @@ export default function DisplayUserDetails({
   error
 }: {
   session: Session | null;
-  rawDreams: any | null;
+  rawDreams: DreamItem[] | null;
   error: any | null;
 }) {
   const user = session?.user;
   const [isHidden, setIsHidden] = useState(true);
 
+  const handleDelete = async (dreamId: string) => {
+    console.log('Delete dream with id:', dreamId);
+    // Implement delete logic here
+  };
+
+  const handleUpdate = async (updatedDream: DreamItem) => {
+    console.log('Update dream:', updatedDream);
+    // Implement update logic here
+  };
+
+  if (!user) {
+    return <p>Please log in to view your details.</p>;
+  }
+
   return (
-    <>
-      {user ? (
-        <>
-          <button onClick={() => setIsHidden((prev) => !prev)}>
-            {isHidden ? "Show Details" : "Hide Details"}{" "}
-          </button>
-          <br />
-          {isHidden ? null : (
-            <>
-              <p>{`username: ${user?.user_metadata?.full_name}`}</p>
-              <p>{`email: ${user?.email}`}</p>
-              <br />
-              <Link href={"/account"}>
-                <button>View Dream Journal</button>
-              </Link>
-              {rawDreams && (
-                <div>
-                  <h3>Recent Dreams:</h3>
-                  <ul>
-                    {rawDreams.map((dream: any) => (
-                      <li key={dream.id}>{dream.title}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {error && <p>Error fetching dreams: {error.message}</p>}
-            </>
-          )}
-        </>
-      ) : (
-        <p>Please log in to view your details.</p>
-      )}
-    </>
+    <div className="space-y-6">
+      
+      <Card>
+        <DreamInputWrapper userId={user.id} />
+        {error && <p className="text-red-500">Error fetching dreams: {error.message}</p>}
+        {rawDreams && rawDreams.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rawDreams.map((dream) => (
+              <OpenAIAnalysisCard
+                key={dream.id}
+                dream={dream}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            ))}
+          </div>
+        ) : (
+          <p>No dreams found. Start by adding a new dream!</p>
+        )}
+      </Card>
+    </div>
   );
 }

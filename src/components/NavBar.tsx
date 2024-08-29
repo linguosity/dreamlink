@@ -2,18 +2,12 @@
 import { Session } from "@supabase/supabase-js";
 import LoginButton from "./login-button";
 import LogoutButton from "./logout-button";
+import NavBarContent from "./NavBarContent";
 
 interface NavBarProps {
   session: Session | null;
 }
 
 export default function NavBar({ session }: NavBarProps) {
-  const user = session?.user;
-
-  return (
-    <nav>
-      {user ? <LogoutButton /> : <LoginButton />}
-      <span>this is a navbar</span>
-    </nav>
-  );
+  return <NavBarContent session={session} />;
 }
