@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Badge, Popover, Modal, Button, TextInput, Textarea } from 'flowbite-react';
 import { DreamItem, Explanation } from '@/types/dreamAnalysis';
+import dayjs from 'dayjs';
 
 interface OpenAIAnalysisCardProps {
   dream: DreamItem;
@@ -204,6 +205,10 @@ const EditDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () 
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const formattedDate = dream.created_at 
+    ? dayjs(dream.created_at).format('MMMM D, YYYY')
+    : 'Date unknown';
+
 
   const handleCardClick = () => {
     setIsModalOpen(true);
@@ -240,6 +245,9 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   return (
     <>
       <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 rounded-2xl" onClick={handleCardClick}>
+        <span className="font-normal text-sm text-yellow-600 italic dark:text-gray-400">
+          {formattedDate}
+        </span>
         <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
         <div className="mb-4 font-light">
           {renderInterpretationPreview()}

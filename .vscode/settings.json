@@ -1,15 +1,23 @@
 {
-    "cSpell.words": [
-        "dreamlink",
-        "findeth",
-        "fkey",
-        "flowbite",
-        "gematria",
-        "Kanban",
-        "openai",
-        "PGRST",
-        "Provideth",
-        "supabase",
-        "tailwindcss"
-    ]
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "cSpell.words": [
+    "dreamlink",
+    "findeth",
+    "fkey",
+    "flowbite",
+    "gematria",
+    "Kanban",
+    "openai",
+    "PGRST",
+    "Provideth",
+    "supabase",
+    "tailwindcss"
+  ],
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": true
 }

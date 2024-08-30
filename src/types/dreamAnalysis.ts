@@ -26,6 +26,11 @@ export interface DreamItem extends DreamAnalysis {
     full_name: string | null;
     avatar_url: string | null;
   };
+  // Add any missing fields from the database structure
+  gematria_interpretation: string | null;
+  color_symbolism: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface VerseInterpretation {
