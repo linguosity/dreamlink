@@ -45,7 +45,7 @@ export default function DreamInput({ onSubmit, userFullName }: DreamInputProps) 
             value={input}
             onChange={handleInputChange}
             rows={6}
-            className="w-full"
+            className="w-full dream-textarea"
           />
         </Modal.Body>
         <Modal.Footer>

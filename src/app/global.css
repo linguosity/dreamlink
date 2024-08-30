@@ -42,3 +42,9 @@ body {
   bottom: 1rem;
   right: 1rem;
 }
+
+.cloud-textarea {
+  border: 0.5px grey dotted;
+  border-radius: 8px;
+  opacity: 0.9;
+}

@@ -6,19 +6,21 @@ import { DreamInterpretation, DreamItem, Json } from '../types/dreamAnalysis';
 import { useRouter } from 'next/navigation';
 import { useDreams } from './ClientDreamsWrapper';
 import { submitDream } from '../app/actions';
+import CloudShape from './CloudShape';
 
 interface DreamInputFormProps {
   userId: string;
   userFullName: string;
+  onAddDream: (dream: DreamItem) => void;
 }
 
-export default function DreamInputForm({ userId, userFullName }: DreamInputFormProps) {
+export default function DreamInputForm({ userId, userFullName, onAddDream }: DreamInputFormProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { addDream } = useDreams();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
 
@@ -68,28 +70,39 @@ export default function DreamInputForm({ userId, userFullName }: DreamInputFormP
           avatar_url: null,
         },
       };
+      onAddDream(dreamItem);
       addDream(dreamItem);
       router.refresh();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-6">
-      <p className="mb-2">Adding dream for: {userFullName}</p>
-      <div className="flex items-center">
-        <TextInput
-          id="dream"
-          type="text"
-          placeholder="Enter your dream"
-          required
-          value={input}
-          onChange={handleInputChange}
-          className="flex-grow"
-        />
-        <Button type="submit" className="ml-2" color='blue' disabled={isLoading}>
-          {isLoading ? <Spinner size="sm" /> : 'Add Dream'}
-        </Button>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <div className="flex items-center justify-center">
+          <div className="center-box mr-4">
+            
+              <textarea
+                  id="dream"
+                  placeholder="Enter your dream"
+                  required
+                  value={input}
+                  onChange={handleInputChange}
+                  className="cloud-textarea focus:outline-none focus:ring-0"
+              />
+              
+            
+          </div>
+          <Button 
+                  type="submit" 
+                  size="sm"
+                  color='blue' 
+                  disabled={isLoading}
+                  className="cloud-button"
+              >
+                {isLoading ? <Spinner size="sm" /> : 'Add Dream'}
+              </Button>
+        </div>
+
     </form>
   );
 }

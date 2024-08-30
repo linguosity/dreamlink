@@ -239,9 +239,9 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
 
   return (
     <>
-      <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow duration-300" onClick={handleCardClick}>
-        <h3 className="text-lg font-bold mb-2">{dream.title}</h3>
-        <div className="mb-4">
+      <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 rounded-2xl" onClick={handleCardClick}>
+        <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
+        <div className="mb-4 font-light">
           {renderInterpretationPreview()}
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
