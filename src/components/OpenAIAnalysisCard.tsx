@@ -82,7 +82,7 @@ const FullDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () 
       <Modal.Header><span> {dream.title} </span></Modal.Header>
       <Modal.Body>
         <div className="space-y-6">
-          <p className='italic text-center'>"{dream.original_dream}"</p>
+        <p className='italic text-center'>&quot;{dream.original_dream}&quot;</p>
           {dream.topic_sentence && <p className="font-bold mb-2">{dream.topic_sentence}</p>}
           {dream.interpretation_elements && dream.interpretation_elements.map((element, index) => (
             <p key={index} className="font-bold mb-2">{element.content}</p>
