@@ -18,7 +18,11 @@ const config: Config = {
     },
   },
   plugins: [
-    require('flowbite/plugin') // Add this line
+    require('flowbite/plugin'),// Add this line
+    require('tailwindcss-animated'),
+  ],
+  safelist: [
+    { pattern: /animate-delay-[0-9]+/, variants: ['sm', 'md', 'lg', 'xl', '2xl'] }
   ],
 };
 export default config;

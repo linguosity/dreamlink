@@ -23,7 +23,7 @@ export default async function FetchUserDetails() {
       `)
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
-
+      
     rawDreams = data;
     error = queryError;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState} from "react";
 import { Session } from "@supabase/supabase-js";
 import { Card } from 'flowbite-react';
 import OpenAIAnalysisCard from './OpenAIAnalysisCard';
@@ -20,6 +20,9 @@ export default function DisplayUserDetails({
   initialDreams,
   initialError
 }: DisplayUserDetailsProps) {
+
+  
+
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
   const [error, setError] = useState(initialError);
@@ -31,7 +34,6 @@ export default function DisplayUserDetails({
   };
 
   const handleDelete = async (dreamId: string) => {
-    console.log('Deleting dream with id:', dreamId);
     try {
       const { error: deleteError } = await supabase
         .from('dream_analyses')
@@ -42,15 +44,13 @@ export default function DisplayUserDetails({
 
       // Update local state to remove the deleted dream
       setDreams(prevDreams => prevDreams.filter(dream => dream.id !== dreamId));
-      console.log('Dream deleted successfully');
+     
     } catch (err) {
-      console.error('Error deleting dream:', err);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
     }
   };
 
   const handleUpdate = async (updatedDream: DreamItem) => {
-    console.log('Update dream:', updatedDream);
     try {
       const { error: updateError } = await supabase
         .from('dream_analyses')
@@ -90,19 +90,25 @@ export default function DisplayUserDetails({
         
         {error && <p className="text-red-500">Error: {error.message}</p>}
         {dreams && dreams.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-            {dreams.map((dream) => (
-              <OpenAIAnalysisCard
-                key={dream.id}
-                dream={dream}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-              />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            {dreams.map((dream, index) => {
+              console.log('Dream:', dream, 'Index:', index); // Log dream and index here
+              
+              return (
+                <OpenAIAnalysisCard
+                  key={dream.id}
+                  index={index}
+                  dream={dream}
+                  onDelete={handleDelete}
+                  onUpdate={handleUpdate}
+                />
+              );
+            })}
           </div>
         ) : (
           <p>No dreams found. Start by adding a new dream!</p>
         )}
+
       
     </div>
   );

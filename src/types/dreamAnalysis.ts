@@ -13,6 +13,16 @@ export interface Explanation {
   };
 }
 
+// Update this interface to match your database structure
+export interface Verse {
+  id: string;
+  dream_analysis_id: string | null;
+  reference: string;
+  text: string;
+  book: string;
+  explanation: string;
+}
+
 export interface DreamItem extends DreamAnalysis {
   status: 'loading' | 'complete';
   topic_sentence: string;
@@ -20,13 +30,12 @@ export interface DreamItem extends DreamAnalysis {
   tags: string[];
   dream_tags: Array<{ tags: Database['public']['Tables']['tags']['Row'] }>;
   dream_entries: Array<{ analysis: Database['public']['Tables']['dream_entries']['Row']['analysis'] }>;
-  verses: Database['public']['Tables']['verses']['Row'][];
+  verses: Verse[];
   interpretation_elements: Database['public']['Tables']['interpretation_elements']['Row'][];
   user: {
     full_name: string | null;
     avatar_url: string | null;
   };
-  // Add any missing fields from the database structure
   gematria_interpretation: string | null;
   color_symbolism: string | null;
   created_at: string | null;

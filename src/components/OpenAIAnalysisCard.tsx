@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { Card, Badge, Popover, Modal, Button, TextInput, Textarea } from 'flowbite-react';
-import { DreamItem, Explanation } from '@/types/dreamAnalysis';
+import { DreamItem, Verse } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
 
 interface OpenAIAnalysisCardProps {
   dream: DreamItem;
   onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamItem) => void;
+  index: number;
 }
 
 const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
@@ -73,45 +74,53 @@ const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
 
 const FullDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () => void; onEdit: () => void; onDelete: () => void }> = ({ dream, isOpen, onClose, onEdit, onDelete }) => {
   return (
-    <Modal dismissible show={isOpen} onClose={onClose}>
-      <Modal.Header>{dream.title}</Modal.Header>
+    <Modal 
+      dismissible show={isOpen} 
+      onClose={onClose}
+      className="bg-transparent backdrop-blur-sm" // Add these classes to the modal backdrop
+    >
+      <Modal.Header><span> {dream.title} </span></Modal.Header>
       <Modal.Body>
         <div className="space-y-6">
-          <h3 className="text-lg font-semibold">Original Dream</h3>
-          <p>{dream.original_dream}</p>
-          <hr className="my-4" />
-          <h3 className="text-lg font-semibold">Interpretation</h3>
+          <p className='italic text-center'>"{dream.original_dream}"</p>
           {dream.topic_sentence && <p className="font-bold mb-2">{dream.topic_sentence}</p>}
-          <div>{renderInterpretation(dream)}</div>
-          {dream.gematria_interpretation && (
-            <>
-              <hr className="my-4" />
-              <h3 className="text-lg font-semibold">Gematria Interpretation</h3>
-              <p>{dream.gematria_interpretation}</p>
-            </>
-          )}
-          {dream.color_symbolism && (
-            <>
-              <hr className="my-4" />
-              <h3 className="text-lg font-semibold">Color Symbolism</h3>
-              <p>{dream.color_symbolism}</p>
-            </>
-          )}
+          {dream.interpretation_elements && dream.interpretation_elements.map((element, index) => (
+            <p key={index} className="font-bold mb-2">{element.content}</p>
+          ))}
+          {dream.verses && dream.verses.map((verse: Verse, index: number) => (
+            <p key={index} className="mb-2">
+              {verse.explanation}{' '}
+              <Popover content={
+                <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{verse.book}</h3>
+                  </div>
+                  <div className="px-3 py-2">
+                    <p>{verse.text}</p>
+                  </div>
+                </div>
+              } trigger="hover">
+                <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
+              </Popover>
+            </p>
+          ))}
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex flex-wrap gap-2 mt-4">
-          {(dream.tags || []).concat(dream.dream_tags.map(dt => dt.tags.name)).map((tag, index) => (
-            <Badge key={index} color="indigo">#{tag}</Badge>
-          ))}
-        </div>
-        <div className="flex justify-end space-x-2 mt-4">
-          <Button color="light" onClick={onEdit}>
-            Edit
-          </Button>
-          <Button color="failure" onClick={onDelete}>
-            Delete
-          </Button>
+        <div className='flex justify-between items-center w-full'>
+          <div className="flex flex-wrap gap-2 ">
+            {(dream.tags || []).concat(dream.dream_tags.map(dt => dt.tags.name)).map((tag, index) => (
+              <Badge key={index} color="indigo">#{tag.toLowerCase()}</Badge>
+            ))}
+          </div>
+          <div className="flex space-x-2 mt-4">
+            <Button color="light" onClick={onEdit}>
+              Edit
+            </Button>
+            <Button color="failure" onClick={onDelete}>
+              Delete
+            </Button>
+          </div>
         </div>
       </Modal.Footer>
     </Modal>
@@ -141,7 +150,11 @@ const EditDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () 
   };
 
   return (
-    <Modal dismissible show={isOpen} onClose={onClose}>
+    <Modal 
+      dismissible show={isOpen} 
+      onClose={onClose}
+      className="bg-transparent backdrop-blur-sm" // Add these classes to the modal backdrop
+    >
       <Modal.Header>Edit Dream Analysis</Modal.Header>
       <Modal.Body>
         <div className="space-y-6">
@@ -202,13 +215,13 @@ const EditDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () 
   );
 };
 
-const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate }) => {
+const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, index }) => {
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const formattedDate = dream.created_at 
     ? dayjs(dream.created_at).format('MMMM D, YYYY')
     : 'Date unknown';
-
 
   const handleCardClick = () => {
     setIsModalOpen(true);
@@ -220,31 +233,29 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   };
 
   const handleDelete = () => {
-    console.log('Delete button clicked for dream:', dream.id);
     setIsModalOpen(false);
-    console.log('Calling onDelete function');
     onDelete(dream.id);
-    console.log('onDelete function called');
   };
 
   const renderInterpretationPreview = () => {
-    if (dream.topic_sentence) {
-      return dream.topic_sentence;
-    } else if (dream.dream_entries && dream.dream_entries[0]?.analysis) {
-      const interpretation = dream.dream_entries[0].analysis;
-      if (typeof interpretation === 'string') {
-        // Remove HTML-like tags and get the first sentence
-        const cleanInterpretation = interpretation.replace(/<[^>]*>/g, '');
-        const firstSentence = cleanInterpretation.split('.')[0];
-        return firstSentence ? `${firstSentence}.` : 'No interpretation available.';
-      }
+    
+    if (dream.interpretation_elements && dream.interpretation_elements.length > 0) {
+      return dream.interpretation_elements[0].content;
+    } else if (dream.verses && dream.verses.length > 0) {
+      return dream.verses[0].explanation;
+    } else if (dream.title) {
+      return dream.title;
     }
+    
     return 'No interpretation available.';
   };
 
   return (
     <>
-      <Card className="w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 rounded-2xl" onClick={handleCardClick}>
+      <Card 
+        className="animate-fade-up w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 rounded-2xl"
+        onClick={handleCardClick}
+      >
         <span className="font-normal text-sm text-yellow-600 italic dark:text-gray-400">
           {formattedDate}
         </span>
