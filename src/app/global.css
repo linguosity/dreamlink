@@ -3,14 +3,19 @@
 @tailwind utilities;
 @import 'flowbite';
 
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  background: linear-gradient(
+  135deg,
+  #fff8f8 0%,
+  #ffffff 50%,
+  #e6eeff 100%
+);
 }
 
-#root,
-#__next {
+#root, #__next {
   height: 100%;
 }
 
@@ -47,4 +52,35 @@ body {
   border: 0.5px grey dotted;
   border-radius: 8px;
   opacity: 0.9;
+}
+
+/* New styles for better mobile support */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+
+  .content {
+    height: calc(100vh - 64px); /* Adjust based on your navbar height */
+    overflow-y: auto;
+  }
+}
+
+/* Styles for SwipeCards */
+.swipe-card-container {
+  width: 100%;
+  height: calc(100vh - 64px); /* Adjust based on your navbar height */
+  overflow: hidden;
+  position: relative;
+}
+
+.swipe-card {
+  position: absolute;
+  width: 90%;
+  max-width: 400px;
+  height: 70vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

@@ -20,8 +20,8 @@ const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
       <p key={index} className="mb-2">
         {explanation.sentence}{' '}
         <Popover content={
-          <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-            <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+          <div className="w-64 text-sm border-none text-gray-500 dark:text-gray-400">
+            <div className="border-b bg-gray-100 px-3 py-2  dark:bg-gray-700">
               <h3 className="font-semibold text-gray-900 dark:text-white">{explanation.citation.book}</h3>
             </div>
             <div className="px-3 py-2">
@@ -277,7 +277,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   return (
     <>
       <Card 
-        className="animate-fade-up w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 rounded-2xl"
+        className="animate-fade-up w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 animate-delay-[123ms] rounded-2xl"
         onClick={handleCardClick}
       >
         <span className="font-normal text-sm text-yellow-600 italic dark:text-gray-400">

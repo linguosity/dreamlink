@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: 'DreamLink',
   description: 'Connect with your dreams',
 }
+export const viewport = 'width=device-width, initial-scale=1';
 
 export default function RootLayout({
   children,

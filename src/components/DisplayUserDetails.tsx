@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import { useState} from "react";
+import React, { useState, useEffect } from "react";
 import { Session } from "@supabase/supabase-js";
-import { Card } from 'flowbite-react';
 import OpenAIAnalysisCard from './OpenAIAnalysisCard';
 import DreamInputWrapper from "./DreamInputWrapper";
 import { DreamItem } from '@/types/dreamAnalysis';
 import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-client";
 import CloudShape from "./CloudShape";
 import useIsMobile from "@/app/hooks/useIsMobile";
-import SwipeCards from "./SwipeCards";
+import SwipeCards from './SwipeCards';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DisplayUserDetailsProps {
   session: Session | null;
@@ -42,9 +42,7 @@ export default function DisplayUserDetails({
 
       if (deleteError) throw deleteError;
 
-      // Update local state to remove the deleted dream
       setDreams(prevDreams => prevDreams.filter(dream => dream.id !== dreamId));
-     
     } catch (err) {
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
     }
@@ -59,7 +57,7 @@ export default function DisplayUserDetails({
 
       if (updateError) throw updateError;
 
-      setDreams(prevDreams => prevDreams.map(dream => 
+      setDreams(prevDreams => prevDreams.map(dream =>
         dream.id === updatedDream.id ? updatedDream : dream
       ));
     } catch (err) {
@@ -74,44 +72,59 @@ export default function DisplayUserDetails({
 
   return (
     <div className="space-y-6 m-8">
-       <div className="relative flex items-center justify-center">
-        <div className="relative animate-shake animate-infinite animate-duration-[24000ms] animate-ease-linear">
-          {/* CloudShape positioned behind */}
+      <div className="relative flex items-center justify-center">
+        <div className="relative animate-fade-left animate-once animate-duration-[800ms] animate-ease-out">
           <CloudShape />
         </div>
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
-          {/* DreamInputWrapper positioned at the bottom */}
           <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
         </div>
       </div>
-        
-        {error && <p className="text-red-500">Error: {error.message}</p>}
 
-        {dreams && dreams.length > 0 ? (
+      {error && <p className="text-red-500">Error: {error.message}</p>}
+
+      {dreams && dreams.length > 0 ? (
         isMobile ? (
           <SwipeCards
             dreams={dreams}
-            onDelete={handleDelete}
             onUpdate={handleUpdate}
+            onDelete={handleDelete}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-            {dreams.map((dream, index) => (
-              <OpenAIAnalysisCard
-                key={dream.id}
-                index={index}
-                dream={dream}
-                onDelete={handleDelete}
-                onUpdate={handleUpdate}
-              />
-            ))}
+            <AnimatePresence>
+              {dreams.map((dream, index) => (
+                <motion.div
+                  key={dream.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    duration: 0.5
+                  }}
+                  style={{
+                    gridColumn: `${(index % 4) + 1} / span 1`,
+                    gridRow: `${Math.floor(index / 4) + 1} / span 1`,
+                  }}
+                >
+                  <OpenAIAnalysisCard
+                    index={index}
+                    dream={dream}
+                    onDelete={handleDelete}
+                    onUpdate={handleUpdate}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )
       ) : (
         <p>No dreams found. Start by adding a new dream!</p>
       )}
-
-      
     </div>
   );
 }
