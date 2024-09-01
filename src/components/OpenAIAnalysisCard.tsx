@@ -178,7 +178,7 @@ const EditDreamModal: React.FC<{ dream: DreamItem; isOpen: boolean; onClose: () 
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-lg shadow-xl cursor-default relative overflow-hidden"
           >
-            <FiAlertCircle className="text-indigo-600/10 dark:text-white/10 rotate-12 text-[250px] absolute z-0 -top-24 -left-24" />
+            
             <div className="relative z-10">
               <h3 className="text-2xl font-bold mb-4">Edit Dream Analysis</h3>
               <div className="space-y-4">
