@@ -8,10 +8,10 @@ html, body {
   margin: 0;
   overflow-x: hidden; /* Prevent horizontal scrolling */
   background: linear-gradient(
-  135deg,
-  #fff8f8 0%,
-  #ffffff 50%,
-  #e6eeff 100%
+    135deg,
+    #c7d9ff 0%,
+    #e6eeff 50%,
+    #ffe6e6 100%
 );
 }
 
@@ -83,4 +83,11 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+
+.cloud-shape {
+  animation: float 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  transition: all 0.3s ease;
 }

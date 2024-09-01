@@ -16,8 +16,8 @@ const CloudShape = () => {
           <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
         </filter>
         <linearGradient id="cloudGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style={{ stopColor: '#f3f4f6', stopOpacity: 1 }} />
-          <stop offset="100%" style={{ stopColor: '#ffffff', stopOpacity: 1 }} />
+          <stop offset="0%" style={{ stopColor: '#ffffff', stopOpacity: 1 }} />
+          <stop offset="100%" style={{ stopColor: '#f3f4f6', stopOpacity: 1 }} />
         </linearGradient>
       </defs>
       
