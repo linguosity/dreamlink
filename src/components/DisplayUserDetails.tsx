@@ -8,6 +8,8 @@ import DreamInputWrapper from "./DreamInputWrapper";
 import { DreamItem } from '@/types/dreamAnalysis';
 import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-client";
 import CloudShape from "./CloudShape";
+import useIsMobile from "@/app/hooks/useIsMobile";
+import SwipeCards from "./SwipeCards";
 
 interface DisplayUserDetailsProps {
   session: Session | null;
@@ -20,12 +22,10 @@ export default function DisplayUserDetails({
   initialDreams,
   initialError
 }: DisplayUserDetailsProps) {
-
-  
-
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
   const [error, setError] = useState(initialError);
+  const isMobile = useIsMobile();
 
   const supabase = createSupabaseBrowserClient();
 
@@ -75,7 +75,7 @@ export default function DisplayUserDetails({
   return (
     <div className="space-y-6 m-8">
        <div className="relative flex items-center justify-center">
-        <div className="relative animate-shake animate-infinite animate-duration-[12000ms] animate-ease-linear">
+        <div className="relative animate-shake animate-infinite animate-duration-[24000ms] animate-ease-linear">
           {/* CloudShape positioned behind */}
           <CloudShape />
         </div>
@@ -84,30 +84,32 @@ export default function DisplayUserDetails({
           <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
         </div>
       </div>
-
-
-          
         
         {error && <p className="text-red-500">Error: {error.message}</p>}
+
         {dreams && dreams.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-            {dreams.map((dream, index) => {
-              console.log('Dream:', dream, 'Index:', index); // Log dream and index here
-              
-              return (
-                <OpenAIAnalysisCard
-                  key={dream.id}
-                  index={index}
-                  dream={dream}
-                  onDelete={handleDelete}
-                  onUpdate={handleUpdate}
-                />
-              );
-            })}
-          </div>
+        isMobile ? (
+          <SwipeCards
+            dreams={dreams}
+            onDelete={handleDelete}
+            onUpdate={handleUpdate}
+          />
         ) : (
-          <p>No dreams found. Start by adding a new dream!</p>
-        )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            {dreams.map((dream, index) => (
+              <OpenAIAnalysisCard
+                key={dream.id}
+                index={index}
+                dream={dream}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            ))}
+          </div>
+        )
+      ) : (
+        <p>No dreams found. Start by adding a new dream!</p>
+      )}
 
       
     </div>
