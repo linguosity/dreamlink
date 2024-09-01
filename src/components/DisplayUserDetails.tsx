@@ -75,7 +75,7 @@ export default function DisplayUserDetails({
   return (
     <div className="space-y-6 m-8">
        <div className="relative flex items-center justify-center">
-        <div className="relative">
+        <div className="relative animate-shake animate-infinite animate-duration-[12000ms] animate-ease-linear">
           {/* CloudShape positioned behind */}
           <CloudShape />
         </div>

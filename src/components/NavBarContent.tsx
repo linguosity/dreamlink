@@ -5,35 +5,79 @@ import { useState } from "react";
 import { Navbar, Dropdown, Avatar } from "flowbite-react";
 import Link from "next/link";
 import LogoutButton from "./logout-button";
+import { Lobster } from 'next/font/google';
 
 interface NavBarContentProps {
   session: Session | null;
 }
 
+// If loading a variable font, you don't need to specify the font weight
+const lobster = Lobster({ subsets: ['latin'], weight: ['400'] })
+
 export default function NavBarContent({ session }: NavBarContentProps) {
   const user = session?.user;
   const [isOpen, setIsOpen] = useState(false);
 
-  // Get the user's Google profile picture URL from the session
   const profilePictureUrl = user?.user_metadata?.avatar_url || "/path/to/default-avatar.jpg";
 
 
+  
+
   return (
     <nav className="bg-[#1E3A8A] dark:bg-gray-900">
-      <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-          {/* <img src="/favicon.svg" className="h-8" alt="DreamLink Logo" /> */}
-          <span className="self-center text-2xl font-semibold whitespace-nowrap text-white dark:text-white">
-            DreamLink
-          </span>
-        </Link>
-        <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+      <div className="max-w-screen-xl flex items-center justify-between mx-auto p-4">
+        {/* Logo and Menu Group */}
+        <div className="flex items-center justify-start space-x-8">
+          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+            <span className={`${lobster.className} self-center text-2xl font-semibold whitespace-nowrap text-white dark:text-white`}>
+              DreamLink
+            </span>
+          </Link>
+          {/* Middle Menu */}
+          <ul className="flex space-x-8">
+            <li>
+              <Link
+                href="/"
+                className="text-white bg-blue-700 rounded md:bg-transparent md:text-white md:p-0 md:dark:text-blue-500"
+                aria-current="page"
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/about"
+                className="text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+              >
+                About
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/services"
+                className="text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+              >
+                Services
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/contact"
+                className="text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 md:dark:hover:bg-transparent"
+              >
+                Contact
+              </Link>
+            </li>
+          </ul>
+        </div>
+        {/* User Profile or Login Button */}
+        <div className="flex items-center space-x-3 md:space-x-0 rtl:space-x-reverse">
           {user ? (
             <Dropdown
-                inline
-                label={<Avatar alt="User settings" img={profilePictureUrl} rounded />}
-                onClick={() => setIsOpen(!isOpen)}
-          >
+              inline
+              label={<Avatar alt="User settings" img={profilePictureUrl} rounded />}
+              onClick={() => setIsOpen(!isOpen)}
+            >
               <Dropdown.Header>
                 <span className="block text-sm text-gray-900 dark:text-white">
                   {user.email}
@@ -82,48 +126,6 @@ export default function NavBarContent({ session }: NavBarContentProps) {
               />
             </svg>
           </button>
-        </div>
-        <div
-          className={`${
-            isOpen ? "block" : "hidden"
-          } items-center justify-between w-full md:flex md:w-auto md:order-1`}
-          id="navbar-user"
-        >
-          <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:dark:bg-gray-900 dark:border-gray-700">
-            <li>
-              <Link
-                href="/"
-                className="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-white md:p-0 md:dark:text-blue-500"
-                aria-current="page"
-              >
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/about"
-                className="block py-2 px-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/services"
-                className="block py-2 px-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                Services
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/contact"
-                className="block py-2 px-3 text-white rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
         </div>
       </div>
     </nav>

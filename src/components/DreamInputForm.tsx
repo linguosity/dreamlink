@@ -87,7 +87,7 @@ export default function DreamInputForm({ userId, userFullName, onAddDream }: Dre
                   required
                   value={input}
                   onChange={handleInputChange}
-                  className="cloud-textarea focus:outline-none focus:ring-0"
+                  className="cloud-textarea focus:outline-none focus:ring-0 animate-fade-right animate-once animate-duration-[800ms] animate-ease-out"
               />
               
             
@@ -97,7 +97,7 @@ export default function DreamInputForm({ userId, userFullName, onAddDream }: Dre
                   size="sm"
                   color='blue' 
                   disabled={isLoading}
-                  className="cloud-button"
+                  className="cloud-button animate-fade-left animate-once animate-duration-[800ms] animate-ease-out"
               >
                 {isLoading ? <Spinner size="sm" /> : 'Add Dream'}
               </Button>
