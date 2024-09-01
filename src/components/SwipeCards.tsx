@@ -1,89 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { motion, useAnimation, PanInfo } from "framer-motion";
+import React, { useState } from "react";
+import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Badge } from 'flowbite-react';
 import { DreamItem } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
 
-interface InfiniteSwipeableCardsProps {
+interface SwipeCardsProps {
   dreams: DreamItem[];
+  onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamItem) => void;
-  onDelete: (dreamId: string) => void;
 }
 
-const InfiniteSwipeableCards: React.FC<InfiniteSwipeableCardsProps> = ({ dreams, onUpdate }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState<'left' | 'right' | null>(null);
-  const controls = useAnimation();
-
-  const wraparoundIndex = (index: number) => {
-    return (index + dreams.length) % dreams.length;
-  };
-
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const swipeThreshold = 50;
-    if (info.offset.x < -swipeThreshold) {
-      setDirection('left');
-    } else if (info.offset.x > swipeThreshold) {
-      setDirection('right');
-    }
-  };
-
-  useEffect(() => {
-    if (direction) {
-      controls.start({ x: direction === 'left' ? -300 : 300, opacity: 0 })
-        .then(() => {
-          setCurrentIndex(prevIndex => 
-            direction === 'left' ? wraparoundIndex(prevIndex + 1) : wraparoundIndex(prevIndex - 1)
-          );
-          setDirection(null);
-          controls.set({ x: 0, opacity: 1 });
-        });
-    }
-  }, [direction, controls]);
-
-  if (dreams.length === 0) {
-    return <p>No dreams found. Start by adding a new dream!</p>;
-  }
-
-  const currentDream = dreams[currentIndex];
-  const formattedDate = currentDream.created_at 
-    ? dayjs(currentDream.created_at).format('MMMM D, YYYY')
-    : 'Date unknown';
+const SwipeCards: React.FC<SwipeCardsProps> = ({ dreams, onDelete, onUpdate }) => {
+  const [cards, setCards] = useState<DreamItem[]>(dreams);
 
   return (
-    <div className="relative h-[500px] w-full overflow-hidden bg-neutral-100">
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        onDragEnd={handleDragEnd}
-        animate={controls}
-      >
-        <div className="bg-white rounded-lg shadow-lg p-6 w-72 h-96">
-          <span className="font-normal text-sm text-yellow-600 italic dark:text-gray-400">
-            {formattedDate}
-          </span>
-          <h3 className="text-lg font-medium mb-2">{currentDream.title}</h3>
-          <div className="mb-4 font-light">
-            {currentDream.interpretation_elements?.[0]?.content || 
-             currentDream.verses?.[0]?.explanation || 
-             currentDream.title || 
-             'No interpretation available.'}
-          </div>
-          <div className="flex flex-wrap gap-2 mt-4">
-            {(currentDream.tags || []).concat(currentDream.dream_tags.map(dt => dt.tags.name)).map((tag, index) => (
-              <Badge key={index} color="indigo">#{tag}</Badge>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <p className="text-sm text-gray-500">
-          Swipe left or right to view more dreams
-        </p>
-      </div>
+    <div
+      className="grid h-[500px] w-full place-items-center"
+    >
+      {cards.map((dream, index) => (
+        <Card 
+          key={dream.id} 
+          dream={dream} 
+          cards={cards} 
+          setCards={setCards} 
+          index={index}
+          onDelete={onDelete}
+          onUpdate={onUpdate}
+        />
+      ))}
     </div>
   );
 };
 
-export default InfiniteSwipeableCards;
+const Card: React.FC<{
+  dream: DreamItem;
+  cards: DreamItem[];
+  setCards: React.Dispatch<React.SetStateAction<DreamItem[]>>;
+  index: number;
+  onDelete: (id: string) => void;
+  onUpdate: (updatedDream: DreamItem) => void;
+}> = ({ dream, cards, setCards, index, onDelete, onUpdate }) => {
+  const x = useMotionValue(0);
+  const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
+  const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
+  const isFront = index === cards.length - 1;
+  const rotate = useTransform(() => {
+    const offset = isFront ? 0 : index % 2 ? 6 : -6;
+    return `${rotateRaw.get() + offset}deg`;
+  });
+
+  const handleDragEnd = () => {
+    if (Math.abs(x.get()) > 100) {
+      setCards((prevCards) => prevCards.filter((card) => card.id !== dream.id));
+      onDelete(dream.id);
+    }
+  };
+
+  const formattedDate = dream.created_at 
+    ? dayjs(dream.created_at).format('MMMM D, YYYY')
+    : 'Date unknown';
+
+  return (
+    <motion.div
+      className="h-96 w-72 rounded-lg bg-white shadow-xl overflow-hidden"
+      style={{
+        gridRow: 1,
+        gridColumn: 1,
+        x,
+        opacity,
+        rotate,
+        transition: "0.125s transform",
+        boxShadow: isFront
+          ? "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)"
+          : undefined,
+      }}
+      animate={{
+        scale: isFront ? 1 : 0.98,
+      }}
+      drag={isFront ? "x" : false}
+      dragConstraints={{
+        left: 0,
+        right: 0,
+      }}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="p-4 h-full flex flex-col">
+        <span className="font-normal text-sm text-yellow-600 italic">
+          {formattedDate}
+        </span>
+        <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
+        <div className="mb-4 font-light flex-grow overflow-auto">
+          {dream.interpretation_elements?.[0]?.content || 
+           dream.verses?.[0]?.explanation || 
+           dream.title || 
+           'No interpretation available.'}
+        </div>
+        <div className="flex flex-wrap gap-2 mt-auto">
+          {(dream.tags || []).concat(dream.dream_tags.map(dt => dt.tags.name)).map((tag, tagIndex) => (
+            <Badge key={tagIndex} color="indigo">#{tag}</Badge>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default SwipeCards;
