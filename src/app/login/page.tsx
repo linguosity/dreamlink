@@ -1,11 +1,10 @@
 import LoginCard from '@/components/LoginCard';
-import loginBackground from '../../../public/images/login-background.jpg';
 
 export default function LoginPage() {
   return (
     <div 
       style={{ 
-        backgroundImage: `url(${loginBackground.src})`, 
+        backgroundImage: `url('/images/login-background.jpg')`, 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
