@@ -1,9 +1,19 @@
 import LoginCard from '@/components/LoginCard';
-import styles from '../../components/LoginPage.module.css';
+import loginBackground from '../../../public/images/login-background.jpg';
 
 export default function LoginPage() {
   return (
-    <div className={styles.loginBackground}>
+    <div 
+      style={{ 
+        backgroundImage: `url(${loginBackground.src})`, 
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        width: '100%',
+        height: '100vh'
+      }} 
+      className="flex justify-center items-center"
+    >
         <div className="flex justify-center items-center min-h-screen">
             <LoginCard />
         </div>
