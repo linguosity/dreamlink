@@ -44,6 +44,7 @@ export default function DisplayUserDetails({
 
       setDreams(prevDreams => prevDreams.filter(dream => dream.id !== dreamId));
     } catch (err) {
+      console.error('Error deleting dream:', err);
       setError(err instanceof Error ? err : new Error('An unknown error occurred'));
     }
   };
@@ -64,6 +65,16 @@ export default function DisplayUserDetails({
       console.error('Error updating dream:', err);
       setError(err as Error);
     }
+  };
+
+  const getGridPosition = (index: number) => {
+    const columns = 4;
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    return {
+      gridColumn: `${column + 1} / span 1`,
+      gridRow: `${row + 1} / span 1`,
+    };
   };
 
   if (!user) {
@@ -106,10 +117,7 @@ export default function DisplayUserDetails({
                     damping: 30,
                     duration: 0.5
                   }}
-                  style={{
-                    gridColumn: `${(index % 4) + 1} / span 1`,
-                    gridRow: `${Math.floor(index / 4) + 1} / span 1`,
-                  }}
+                  style={getGridPosition(index)}
                 >
                   <OpenAIAnalysisCard
                     index={index}

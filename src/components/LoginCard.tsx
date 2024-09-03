@@ -48,9 +48,11 @@ export default function LoginCard() {
 
   return (
     <Card className="w-full max-w-sm">
-      <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-        {isLogin ? 'Sign In' : 'Sign Up'} to DreamLink
-      </h5>
+      <span 
+            className="self-center text-2xl font-semibold whitespace-nowrap text-black dark:text-white"
+            style={{ fontFamily: 'Blanka, sans-serif' }}>
+                DreamLink
+      </span>
       {error && (
         <Alert color="failure" className="mt-2">
           {error}

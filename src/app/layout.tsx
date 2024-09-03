@@ -1,11 +1,13 @@
 // src/app/layout.tsx
 
 import { Metadata } from 'next'
+import Head from 'next/head';
 import NavBar from '../components/NavBar'
 import { createSupabaseServerComponentClient } from "@/lib/utils/supabase/server-client";
 import 'flowbite/dist/flowbite.css';
 import '../app/global.css'; // Adjust this path if your global CSS is located elsewhere
 import { Poppins } from 'next/font/google';
+import styles from '../components/LoginPage.module.css';
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -25,7 +27,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
+      <Head>
+        <link
+          rel="preload"
+          href="/fonts/Blanka.otf"
+          as="font"
+          type="font/otf"
+          crossOrigin="anonymous"
+        />
+      </Head>
+      <body className={`${styles.loginContainer} flex justify-center items-center min-h-screen`}>
         {children}
       </body>
     </html>

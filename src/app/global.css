@@ -3,6 +3,14 @@
 @tailwind utilities;
 @import 'flowbite';
 
+@font-face {
+  font-family: 'Blanka';
+  src: url('/fonts/Blanka.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
 html, body {
   height: 100%;
   margin: 0;
