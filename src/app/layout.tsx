@@ -36,7 +36,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </Head>
-      <body className={`${styles.loginContainer} flex justify-center items-center min-h-screen`}>
+      <body>
         {children}
       </body>
     </html>

@@ -1,4 +1,4 @@
-.loginContainer {
+.loginBackground {
     background-image: url('/images/login-background.jpg');
     background-size: cover;
     background-position: center;
@@ -8,7 +8,7 @@
 }
 
 @media (max-width: 768px) {
-    .loginContainer {
+    .loginBackground {
         background-image: url('/images/login-background.jpg');
     }
 }
