@@ -15,7 +15,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({ dreams, onDelete, onUpdate }) =
 
   return (
     <div
-      className="grid h-[500px] w-full place-items-center bg-neutral-100"
+      className="grid h-[500px] w-full place-items-center bg-transparent"
       
     >
       {cards.map((dream, index) => (

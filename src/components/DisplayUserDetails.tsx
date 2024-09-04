@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Session } from "@supabase/supabase-js";
 import OpenAIAnalysisCard from './OpenAIAnalysisCard';
 import DreamInputWrapper from "./DreamInputWrapper";
@@ -26,8 +26,26 @@ export default function DisplayUserDetails({
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
   const [error, setError] = useState(initialError);
   const isMobile = useIsMobile();
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columns, setColumns] = useState(1);
 
   const supabase = createSupabaseBrowserClient();
+
+  useEffect(() => {
+    const updateColumns = () => {
+      if (gridRef.current) {
+        const gridWidth = gridRef.current.offsetWidth;
+        const cardWidth = 350; // minimum width of a card
+        const gap = 16; // gap size in pixels
+        const newColumns = Math.floor((gridWidth + gap) / (cardWidth + gap));
+        setColumns(Math.max(1, newColumns));
+      }
+    };
+
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
 
   const handleAddDream = (newDream: DreamItem) => {
     setDreams(prevDreams => [newDream, ...prevDreams]);
@@ -68,12 +86,11 @@ export default function DisplayUserDetails({
   };
 
   const getGridPosition = (index: number) => {
-    const columns = 4;
     const column = index % columns;
     const row = Math.floor(index / columns);
     return {
-      gridColumn: `${column + 1} / span 1`,
-      gridRow: `${row + 1} / span 1`,
+      gridColumn: `${column + 1}`,
+      gridRow: `${row + 1}`,
     };
   };
 
@@ -102,7 +119,14 @@ export default function DisplayUserDetails({
             onDelete={handleDelete}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+          <div 
+            ref={gridRef}
+            className="grid gap-4 p-4 dream-grid"
+            style={{
+              gridTemplateColumns: `repeat(${columns}, minmax(350px, 1fr))`,
+              gap: '1rem'
+            }}
+          >
             <AnimatePresence>
               {dreams.map((dream, index) => (
                 <motion.div
@@ -117,6 +141,7 @@ export default function DisplayUserDetails({
                     damping: 30,
                     duration: 0.5
                   }}
+                  className="w-full min-w-[350px]"
                   style={getGridPosition(index)}
                 >
                   <OpenAIAnalysisCard
