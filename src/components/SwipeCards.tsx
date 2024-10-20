@@ -97,7 +97,7 @@ const Card: React.FC<{
            'No interpretation available.'}
         </div>
         <div className="flex flex-wrap gap-2 mt-auto">
-          {(dream.tags || []).concat(dream.dream_tags.map(dt => dt.tags.name)).map((tag, tagIndex) => (
+          {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, tagIndex) => (
             <Badge key={tagIndex} color="indigo">#{tag}</Badge>
           ))}
         </div>
