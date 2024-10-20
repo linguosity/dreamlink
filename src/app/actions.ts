@@ -21,7 +21,11 @@ export interface DreamInterpretation {
   tags: string[];
 }
 
-export async function submitDream(dreamText: string): Promise<DreamInterpretation | null>  {
+export async function submitDream(
+  dreamText: string,
+  language: string = 'en',
+  bibleVersion: string = 'Tree of Life'
+): Promise<DreamInterpretation | null>  {
   const supabase = createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -34,8 +38,8 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: `You are a biblical scholar and religious dream interpreter. Analyze a given dream and provide its meaning from the Tree of Life Bible with the most relevant supporting verses. Your response should be a JSON object with the following structure: { "title": "A short title for the dream interpretation", "topic_sentence": "A topic sentence describing what the symbols in the dream represent", "explanations": [ { "sentence": "A supporting sentence explaining the dream symbol with a reference to a specific Bible verse", "citation": { "verse": "Book Chapter:Verse", "text": "Actual text of the verse from the Bible", "book": "Name of the Bible book" } }, ... ], "tags": ["tag1", "tag2", "tag3", ...] } Provide 3-5 relevant verse explanations for each dream.` },
-        { role: "user", content: dreamText }
+        { role: "system", content: `You are a biblical scholar and religious dream interpreter. Analyze the given dream and provide your interpretation IN ${language.toUpperCase()} LANGUAGE ONLY, regardless of the language of the input dream. Use the ${bibleVersion} for references. Your response in ${language.toUpperCase()} should be a JSON object with the following structure: { "title": "A short title for the dream interpretation", "topic_sentence": "A topic sentence describing what the symbols in the dream represent", "explanations": [ { "sentence": "A supporting sentence explaining the dream symbol with a reference to a specific Bible verse", "citation": { "verse": "Book Chapter:Verse", "text": "Actual text of the verse from the Bible", "book": "Name of the Bible book" } }, ... ], "tags": ["tag1", "tag2", "tag3", ...] } Provide 3-5 relevant verse explanations for each dream.` },
+        { role: "user", content: `If the following dream text is not in ${language}, first translate it to ${language}, then interpret it: ${dreamText}` }
       ],
       response_format: { type: "json_object" },
     });
@@ -50,13 +54,20 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
         user_id: session.user.id,
         original_dream: dreamText,
         title: dreamInterpretation.title,
+        language: language, // Make sure 'language' is defined and passed
+        bible_version: bibleVersion, // Make sure 'bibleVersion' is defined and passed
         color_symbolism: null, // You might want to extract this from the interpretation if needed
         gematria_interpretation: null, // You might want to extract this from the interpretation if needed
       })
       .select()
       .single();
 
-    if (dreamError) throw dreamError;
+      if (dreamError) {
+        console.error('Error inserting dream:', dreamError);
+      } else {
+        // Log the data returned from Supabase
+        console.log('Inserted dream data:', dreamAnalysis);
+      }
 
     // Insert interpretation elements
     const { error: interpretationError } = await supabase
@@ -83,8 +94,14 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
 
     if (versesError) throw versesError;
 
-    // Insert tags
-    for (const tag of dreamInterpretation.tags) {
+    // Insert tags, including special tags for language and Bible version
+    const allTags = [
+      ...dreamInterpretation.tags,
+      `_lang:${language}`,
+      `_bible:${bibleVersion}`
+    ];
+
+    for (const tag of allTags) {
       const { data: existingTag } = await supabase
         .from('tags')
         .select('id')
@@ -114,6 +131,9 @@ export async function submitDream(dreamText: string): Promise<DreamInterpretatio
 
       if (dreamTagError) throw dreamTagError;
     }
+
+    // After inserting all tags
+    console.log('All tags inserted:', allTags);
 
     return dreamInterpretation;
 

@@ -1,6 +1,5 @@
 import { createSupabaseServerComponentClient } from "../lib/utils/supabase/server-client";
 import DisplayUserDetails from "./DisplayUserDetails";
-import NavBar from "./NavBar";
 import { DreamItem } from '@/types/dreamAnalysis';
 
 export default async function FetchUserDetails() {
@@ -26,11 +25,13 @@ export default async function FetchUserDetails() {
       
     rawDreams = data;
     error = queryError;
+
+    console.log('Fetched dreams data:', data);
   }
 
   return (
     <>
-      <NavBar session={session} />
+      
       <DisplayUserDetails 
         session={session} 
         initialDreams={rawDreams} 

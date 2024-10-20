@@ -1,108 +1,67 @@
-'use client';
+// src/components/DreamInputForm.tsx
+
+'use client'; // Indicates that this is a client-side component
 
 import React, { useState } from 'react';
-import { TextInput, Button, Spinner } from 'flowbite-react';
-import { DreamInterpretation, DreamItem, Json } from '../types/dreamAnalysis';
-import { useRouter } from 'next/navigation';
-import { useDreams } from './ClientDreamsWrapper';
-import { submitDream } from '../app/actions';
-import CloudShape from './CloudShape';
+import { Button, Spinner } from 'flowbite-react'; // Import UI components
+import { useRouter } from 'next/navigation'; // Import router for navigation actions
+import { DreamItem } from '@/types/dreamAnalysis'; // Import from dreamAnalysis.ts
 
 interface DreamInputFormProps {
-  userId: string;
-  userFullName: string;
-  onAddDream: (dream: DreamItem) => void;
+  userId: string; // The ID of the current user
+  userFullName: string; // The full name of the user
+  onAddDream: (dream: DreamItem) => void; // Function to call when a new dream is added
+  onSubmit: (dreamText: string) => Promise<boolean>; // Function to handle dream submission
 }
 
-export default function DreamInputForm({ userId, userFullName, onAddDream }: DreamInputFormProps) {
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-  const { addDream } = useDreams();
+// This component renders the form for inputting a new dream
+export default function DreamInputForm({ userId, userFullName, onAddDream, onSubmit }: DreamInputFormProps) {
+  const [input, setInput] = useState(''); // State to hold the dream text input
+  const [isLoading, setIsLoading] = useState(false); // State to indicate loading status
+  const router = useRouter(); // Router for navigation or refreshing the page
 
+  // Function to handle changes in the dream input field
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    const result = await submitDream(input);
-    setIsLoading(false);
-    if (result) {
-      setInput('');
-      // Convert DreamInterpretation to DreamItem
-      const dreamItem: DreamItem = {
-        id: '', // This will be set by Supabase
-        user_id: userId,
-        original_dream: input,
-        title: result.title,
-        topic_sentence: result.topic_sentence,
-        explanations: result.explanations,
-        tags: result.tags,
-        color_symbolism: null,
-        gematria_interpretation: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        status: 'complete',
-        dream_tags: result.tags.map(tag => ({ tags: { id: '', name: tag } })),
-        dream_entries: [{ 
-          analysis: result as unknown as Json
-        }],
-        verses: result.explanations.map(explanation => ({
-          id: '',
-          dream_analysis_id: '',
-          reference: explanation.citation.verse,
-          text: explanation.citation.text,
-          explanation: explanation.sentence,
-          book: explanation.citation.book
-        })),
-        interpretation_elements: [{
-          id: '',
-          dream_analysis_id: '',
-          content: result.topic_sentence,
-          is_popover: false,
-          order_index: 0,
-          popover_content: null
-        }],
-        user: {
-          full_name: userFullName,
-          avatar_url: null,
-        },
-      };
-      onAddDream(dreamItem);
-      addDream(dreamItem);
-      router.refresh();
+  // Function to handle form submission
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent the default form submission behavior
+    setIsLoading(true); // Set loading state to true
+    const success = await onSubmit(input); // Call the onSubmit function passed from props
+    setIsLoading(false); // Set loading state to false
+    if (success) {
+      setInput(''); // Clear the input field
+      router.refresh(); // Refresh the page or perform additional actions
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleFormSubmit}>
       <div className="flex items-center justify-center">
-          <div className="center-box mr-4">
-            
-              <textarea
-                  id="dream"
-                  placeholder="Enter your dream"
-                  required
-                  value={input}
-                  onChange={handleInputChange}
-                  className="cloud-textarea focus:outline-none focus:ring-0 animate-fade-right animate-once animate-duration-[800ms] animate-ease-out"
-              />
-              
-            
-          </div>
-          <Button 
-                  type="submit" 
-                  size="sm"
-                  color='blue' 
-                  disabled={isLoading}
-                  className="cloud-button animate-fade-left animate-once animate-duration-[800ms] animate-ease-out"
-              >
-                {isLoading ? <Spinner size="sm" /> : 'Add Dream'}
-              </Button>
+        <div className="center-box mr-4">
+          {/* Textarea for entering the dream */}
+          <textarea
+            id="dream"
+            placeholder="Enter your dream"
+            required
+            value={input}
+            onChange={handleInputChange}
+            className="cloud-textarea focus:outline-none focus:ring-0 animate-fade-right animate-once animate-duration-[800ms] animate-ease-out"
+          />
         </div>
-
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          size="sm"
+          color="blue"
+          disabled={isLoading}
+          className="cloud-button animate-fade-left animate-once animate-duration-[800ms] animate-ease-out"
+        >
+          {isLoading ? <Spinner size="sm" /> : 'Add Dream'}
+        </Button>
+      </div>
     </form>
   );
 }

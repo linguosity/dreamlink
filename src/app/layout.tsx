@@ -8,6 +8,7 @@ import 'flowbite/dist/flowbite.css';
 import '../app/global.css'; // Adjust this path if your global CSS is located elsewhere
 import { Poppins } from 'next/font/google';
 import styles from '../components/LoginPage.module.css';
+import { UserSettingsProvider } from '@/context/UserSettingsContext';
 
 const poppins = Poppins({ 
   subsets: ['latin'],
@@ -20,11 +21,14 @@ export const metadata: Metadata = {
 }
 export const viewport = 'width=device-width, initial-scale=1';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = createSupabaseServerComponentClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
   return (
     <html lang="en">
       <Head>
@@ -36,9 +40,13 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </Head>
-      <body>
+      <UserSettingsProvider session={session}>
+        <body>
+        <NavBar session={session} />
         {children}
-      </body>
+        </body>
+      </UserSettingsProvider>
+      
     </html>
   );
 }

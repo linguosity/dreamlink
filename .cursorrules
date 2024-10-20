@@ -1,0 +1,91 @@
+- Expert Role: Master of Next.js, Vercel, Supabase, Tailwind CSS/Flowbite React, TypeScript, Node.js, Next.js App Router, React,  and Vercel AI SDK
+  - Expertise covers all facets of modern web application development, from architecture to performance optimization
+  - Deep understanding of features as of October 2024, including advanced App Router, Edge Functions, and JIT Mode
+  - Emphasis on developer experience, scaling, and building performant, robust applications
+  - Strong focus on AI integration with Vercel AI SDK for intelligent, interactive features
+
+- Next.js Best Practices
+  - **App Router**: Use App Router for optimized performance and seamless developer experience
+    - Benefits include Server Components, Streaming, and Server Actions for efficient data handling
+    - Utilize **nested layouts** and **parallel routes** to simplify page composition and navigation
+  - **Image Optimization**: Leverage `next/image` to handle images efficiently
+    - Features include **responsive sizing**, **lazy loading**, and **format conversion** to WebP/AVIF
+    - Utilize `priority` attribute for **above-the-fold images** to enhance user-perceived performance
+  - **Middleware**: Use middleware for handling requests before rendering
+    - Common use cases: **authentication**, **bot protection**, **A/B testing**
+  - **TypeScript for Type Safety**: Apply TypeScript to all components, ensuring type safety
+  - **API Route Handling**: Use `route.ts` for defining API routes
+    - Follow REST conventions using `GET`, `POST`, `PUT`, and `DELETE`
+  - **Caching and Revalidation**: Implement Next.js caching and revalidation with `revalidate` and `stale-while-revalidate`
+  - **Error and Loading States**: Use `loading.tsx` for loading screens and `error.tsx` for error boundaries
+  - **SEO Optimization**: Use Next.js 14's metadata API for improved SEO and structured data
+  - **Server Components**: Maximize React Server Components (RSC) usage for performance gains
+  - **Static and Dynamic Data Fetching**: Use `getStaticProps` for static data, `getServerSideProps` for dynamic content where needed
+
+- Supabase Integration
+  - **Edge Functions**: Utilize Edge Functions for low-latency, serverless operations
+    - Written in TypeScript, running close to users to minimize cold starts
+    - Use Edge Functions for **real-time processing** and **third-party API integration**
+  - **Real-time Features**: Implement real-time updates with Supabase subscriptions
+    - Example: Subscribe to changes in a specific table to keep the UI in sync with database updates
+  - **Row-Level Security (RLS)**: Secure data with RLS for fine-grained access control
+    - Use `auth.uid()` to ensure users can only access their data
+  - **Supabase SDK Usage**: Fetch and query data using the Supabase SDK
+    - Prefer readable queries like `supabase.from('table').select('*').eq('column', value)`
+  - **Schema Building**: Use Supabase schema builder or SQL editor for creating clean, well-documented data models
+
+- Vercel Deployment Best Practices
+  - **Preview Deployments**: Set up preview deployments for every pull request
+    - Enables comprehensive testing, stakeholder review, and visual validation
+    - Configure environment variables to ensure accurate preview staging
+  - **Edge Config**: Use Edge Config for rapid access to configuration settings
+    - Suitable for global key-value storage for **feature flags**, **user preferences**, and **app settings**
+  - **Vercel AI SDK Integration**: Utilize the Vercel AI SDK for building AI-powered features
+    - Use AI SDK Core for **generative content**, **structured objects**, and **tool calls** with LLMs
+    - Implement AI SDK UI hooks to craft **chat interfaces** with enhanced UX
+    - Leverage AI SDK RSC for **streaming generative interfaces** using React Server Components
+
+- Tailwind CSS and Flowbite React Optimization
+  - **Tailwind CSS JIT Mode**: Enable JIT mode for faster builds and smaller CSS
+    - Take advantage of **arbitrary values** for flexible design implementation
+  - **Custom Plugins**: Develop custom Tailwind plugins to ensure consistent UI styling
+    - Example: `.btn` for button styles, reusable across the entire app with consistent visual appearance
+    - Use state variants (`hover`, `focus`, `active`) for better interactivity
+  - **Dark Mode**: Implement seamless dark/light theme switching with Tailwind's dark mode support
+    - Prefer `darkMode: 'media'` for a system-preference based dark mode experience
+  - **Flowbite UI Components**: Use pre-built Flowbite components for rapid UI development
+    - Ensure uniformity by integrating Flowbite's components into the overall design system
+  - **Responsive Design**: Adopt a mobile-first approach for responsive design
+    - Utilize Tailwind utility classes (`sm:`, `md:`, `lg:`) to ensure layouts adapt gracefully across different screen sizes
+
+- General Best Practices
+  - **Dependency Management**: Keep dependencies updated to benefit from new features and security improvements
+    - Use tools like **Dependabot** or **Renovate** for automating dependency updates
+  - **Environment Variables**: Handle environment variables securely
+    - Use `NEXT_PUBLIC_` prefix for variables exposed to the client-side
+  - **Optimization Strategy**: Avoid premature optimizations, prioritize delivering core features first
+  - **SEO and Accessibility**: Ensure high standards of SEO and accessibility
+    - Use `next/head` for metadata, include ARIA roles for screen reader compatibility
+  - **Component Testing**: Write thorough tests for components using Jest and React Testing Library
+    - Use **Cypress** for end-to-end testing to verify user flows and integration
+  - **Variable Naming**: Use descriptive names with auxiliary verbs (`isLoading`, `hasError`) to communicate intent clearly
+    - Maintain consistent naming conventions across the codebase for readability
+  - **File Structure**: Structure files by separating concerns for better maintainability
+    - Components, subcomponents, helpers, static content, and types should be logically organized
+  - **Naming Conventions**: Use lowercase with dashes for file and directory names (`components/auth-wizard`)
+  - **Export Practices**: Favor named exports over default exports for more straightforward imports and easier refactoring
+  - **Functional Programming**: Use functional and declarative paradigms; avoid classes unless unavoidable
+  - **Code Duplication**: Minimize code duplication by modularizing and reusing code blocks
+  - **Use of `use client`**: Minimize the usage of `use client` directive
+    - Prefer server components and SSR for improved performance
+    - Use `use client` only for components requiring specific browser APIs or client-side interactivity
+  - **React Hooks Optimization**: Minimize `useEffect` and `useState` by using React Server Components where possible
+    - Delegate complex state logic to the server to minimize client-side processing
+  - **Suspense for Loading States**: Wrap client components in `Suspense` with informative fallbacks
+  - **Dynamic Imports**: Use `next/dynamic` to load non-essential components dynamically, reducing initial bundle size
+  - **Image Optimization**: Use Next.js `Image` component for optimized images
+    - Specify `width` and `height` to prevent layout shifts and enable **lazy loading** for non-critical images
+  - **Error Boundaries**: Implement robust error boundaries with `error.tsx` to gracefully handle errors
+  - **URL State Management**: Use `nuqs` for consistent and declarative URL search parameter state management
+  - **Web Vitals Optimization**: Focus on optimizing core Web Vitals (LCP, CLS, FID)
+    - Regularly audit performance with tools like **Lighthouse** and **Web Vitals Chrome extension** to maintain high standards

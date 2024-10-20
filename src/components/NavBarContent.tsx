@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Dropdown, Avatar } from "flowbite-react";
 import Link from "next/link";
 import LogoutButton from "./logout-button";
+import NavbarSearch from './NavBarSearch';
 
 interface NavBarContentProps {
   session: Session | null;
@@ -30,6 +31,11 @@ export default function NavBarContent({ session }: NavBarContentProps) {
                 DreamLink
           </span>
         </Link>
+        
+        {/* <div className="flex-grow mx-4">
+          <NavbarSearch />
+        </div> */}
+
         <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {user ? (
             <Dropdown

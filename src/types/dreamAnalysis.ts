@@ -1,6 +1,5 @@
-// src/types/dreamAnalysis.ts
 
-import { Database } from "../lib/utils/supabase/database.types";
+import { Database } from '@/types/supabase'; // Make sure this path is correct
 
 export type DreamAnalysis = Database['public']['Tables']['dream_analyses']['Row'];
 
@@ -13,7 +12,6 @@ export interface Explanation {
   };
 }
 
-// Update this interface to match your database structure
 export interface Verse {
   id: string;
   dream_analysis_id: string | null;
@@ -23,23 +21,43 @@ export interface Verse {
   explanation: string;
 }
 
+export interface DreamTag {
+  tags: {
+    name: string;
+  };
+}
+
+export interface InterpretationElement {
+  content: string;
+  is_popover: boolean;
+  popover_content?: string | null;
+  order_index: number;
+}
+
+export interface DreamEntry {
+  analysis: string;
+  created_at: string;
+  id: number;
+  user_id: string;
+}
+
 export interface DreamItem extends DreamAnalysis {
-  status: 'loading' | 'complete';
-  topic_sentence: string;
-  explanations: Explanation[];
-  tags: string[];
-  dream_tags: Array<{ tags: Database['public']['Tables']['tags']['Row'] }>;
-  dream_entries: Array<{ analysis: Database['public']['Tables']['dream_entries']['Row']['analysis'] }>;
-  verses: Verse[];
-  interpretation_elements: Database['public']['Tables']['interpretation_elements']['Row'][];
-  user: {
+  status?: 'loading' | 'complete';
+  topic_sentence: string | null; // Ensure compatibility with dream_analyses.topic_sentence
+  explanations?: Explanation[]; // Added custom explanation type
+  tags?: string[]; // Optional, since this isn't directly in the database schema
+  dream_tags?: Array<{ tags: Database['public']['Tables']['tags']['Row'] }>; // Optional, as it’s an additional reference
+  dream_entries?: Array<{ analysis: Json }>; // Optional to prevent mismatch
+  verses?: Verse[]; // Optional or remove if not directly used
+  interpretation_elements?: Database['public']['Tables']['interpretation_elements']['Row'][]; // Optional for compatibility
+  user?: {
     full_name: string | null;
     avatar_url: string | null;
-  };
-  gematria_interpretation: string | null;
-  color_symbolism: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  }; // Optional to avoid mismatch if user isn't linked directly
+  gematria_interpretation: string | null; // Nullable
+  color_symbolism: string | null; // Nullable
+  created_at: string | null; // Nullable
+  updated_at: string | null; // Nullable
 }
 
 export interface VerseInterpretation {

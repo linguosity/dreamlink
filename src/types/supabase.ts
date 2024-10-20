@@ -7,14 +7,41 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       dream_analyses: {
         Row: {
+          bible_version: string
           color_symbolism: string | null
           created_at: string | null
           gematria_interpretation: string | null
           id: string
+          language: string
           original_dream: string
           title: string
           topic_sentence: string | null
@@ -22,10 +49,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          bible_version?: string
           color_symbolism?: string | null
           created_at?: string | null
           gematria_interpretation?: string | null
           id?: string
+          language?: string
           original_dream: string
           title: string
           topic_sentence?: string | null
@@ -33,10 +62,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          bible_version?: string
           color_symbolism?: string | null
           created_at?: string | null
           gematria_interpretation?: string | null
           id?: string
+          language?: string
           original_dream?: string
           title?: string
           topic_sentence?: string | null
@@ -209,6 +240,38 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      user_settings: {
+        Row: {
+          bible_version: string | null
+          created_at: string | null
+          language: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bible_version?: string | null
+          created_at?: string | null
+          language?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bible_version?: string | null
+          created_at?: string | null
+          language?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
