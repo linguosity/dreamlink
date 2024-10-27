@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 import { Button, Modal, Textarea, Spinner } from 'flowbite-react'; // Import UI components
+import { Send } from 'lucide-react'; // Modern, clean icon set
 
 interface DreamInputProps {
   onSubmit: (dreamText: string) => Promise<boolean>; // Function to handle dream submission
@@ -37,7 +38,7 @@ export default function DreamInput({ onSubmit, userFullName }: DreamInputProps) 
       {/* Button to open the modal */}
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 rounded-full w-14 h-14 flex items-center justify-center"
+        className="fixed bottom-4 right-4 rounded-full w-14 h-14 flex items-center justify-center z-40"
       >
         +
       </Button>
@@ -50,21 +51,37 @@ export default function DreamInput({ onSubmit, userFullName }: DreamInputProps) 
           {/* Textarea for entering the dream */}
           <Textarea
             id="dream"
-            placeholder="Describe your dream..."
+            placeholder="Share your dream journey..."
             required
             value={input}
-            onChange={handleInputChange}
-            rows={6}
-            className="w-full dream-textarea"
+            onChange={(e) => setInput(e.target.value)}
+            rows={1}
+            className="w-full p-4 text-lg bg-white/10 backdrop-blur-sm rounded-xl 
+                       border border-gray-300 focus:ring-2 focus:ring-blue-500 
+                       focus:border-transparent resize-none transition-all duration-200
+                       text-white placeholder-white/50"
           />
         </Modal.Body>
         <Modal.Footer>
           {/* Submit Button */}
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? <Spinner size="sm" /> : 'Submit Dream'}
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isLoading}
+            className="p-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-200 border-0"
+            title="Submit dream"
+          >
+            {isLoading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
           </Button>
           {/* Cancel Button */}
-          <Button color="gray" onClick={() => setIsOpen(false)}>
+          <Button
+            type="button"
+            size="sm"
+            color="gray"
+            onClick={() => setIsOpen(false)}
+            className="p-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all duration-200 border-0"
+            title="Cancel"
+          >
             Cancel
           </Button>
         </Modal.Footer>

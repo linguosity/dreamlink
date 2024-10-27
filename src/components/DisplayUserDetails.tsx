@@ -6,7 +6,6 @@ import OpenAIAnalysisCard from './OpenAIAnalysisCard';
 import DreamInputWrapper from "./DreamInputWrapper";
 import { DreamItem } from '@/types/dreamAnalysis';
 import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-client";
-import CloudShape from "./CloudShape";
 import useIsMobile from "@/app/hooks/useIsMobile";
 import SwipeCards from './SwipeCards';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -101,9 +100,7 @@ export default function DisplayUserDetails({
   return (
     <div className="space-y-6 m-8">
       <div className="relative flex items-center justify-center">
-        <div className="relative animate-fade-left animate-once animate-duration-[800ms] animate-ease-out">
-          <CloudShape />
-        </div>
+       
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
           <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
         </div>

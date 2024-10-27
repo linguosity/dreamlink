@@ -22,7 +22,7 @@ export default function NavBarContent({ session }: NavBarContentProps) {
   };
 
   return (
-    <nav className="bg-[#1E3A8A] dark:bg-gray-900">
+    <nav className="sticky top-0 z-50 bg-[#1E3A8A] dark:bg-gray-900">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
         <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse animate-fade-right animate-once animate-delay-300">
           <span 

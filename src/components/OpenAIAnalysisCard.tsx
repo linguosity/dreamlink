@@ -74,6 +74,33 @@ const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
   return elements;
 };
 
+const modalVariants = {
+  hidden: { 
+    opacity: 0,
+    scale: 0.98,
+    y: 20
+  },
+  visible: { 
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { 
+      type: "spring",
+      duration: 0.3,
+      bounce: 0.1
+    }
+  },
+  exit: { 
+    opacity: 0,
+    scale: 0.98,
+    y: 20,
+    transition: { 
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
+};
+
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, index }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -130,76 +157,112 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
       </Card>
 
       {/* Dream details modal */}
-      <Modal 
-        show={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        size="md" 
-        className="my-8"
-        position="center"
-      >
-        <Modal.Header>{dream.title}</Modal.Header>
-        <Modal.Body>
-          {dream.topic_sentence && (
-            <p className="mb-4 font-semibold">{dream.topic_sentence}</p>
-          )}
+      <AnimatePresence mode="wait">
+        {isModalOpen && (
+          <Modal 
+            show={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            size="7xl"
+            position="center"
+            theme={{
+              root: {
+                base: "fixed inset-0 z-50 flex items-center justify-center"
+              },
+              content: {
+                base: "relative w-full p-4",
+                inner: "relative rounded-lg glass-effect max-w-4xl mx-auto"
+              }
+            }}
+          >
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full"
+            >
+              <Modal.Header>{dream.title}</Modal.Header>
+              <Modal.Body>
+                {dream.topic_sentence && (
+                  <p className="mb-4 font-semibold">{dream.topic_sentence}</p>
+                )}
 
 
-          <p className="flex text-center justify-center gap-2 mb-4"><CloudIcon className="size-6" /></p>
-          <p className="mb-4 text-center">{dream.original_dream}</p>
-          <HR />
-          <h4 className="font-semibold mb-2">Interpretation:</h4>
-          <div className="mb-4">{renderInterpretation(dream)}</div>
-          {dream.interpretation_elements && dream.interpretation_elements.length > 0 && (
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Additional Interpretation:</h4>
-              {dream.interpretation_elements.map((element, index) => (
-                <p key={index} className="mb-2">
-                  {element.content}
-                  {element.is_popover && element.popover_content && (
-                    <Popover
-                      content={
-                        <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="px-3 py-2">
-                            <p>{element.popover_content}</p>
-                          </div>
-                        </div>
-                      }
-                      trigger="hover"
-                    >
-                      <span className="text-blue-500 underline cursor-pointer"> (More info)</span>
-                    </Popover>
-                  )}
-                </p>
-              ))}
-            </div>
-          )}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, index) => (
-              <Badge key={index} color="indigo">#{tag}</Badge>
-            ))}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={handleEdit}>Edit</Button>
-          <Button color="failure" onClick={handleDelete}>Delete</Button>
-          <Button color="gray" onClick={() => setIsModalOpen(false)}>Close</Button>
-        </Modal.Footer>
-      </Modal>
+                <p className="flex text-center justify-center gap-2 mb-4"><CloudIcon className="size-6" /></p>
+                <p className="mb-4 text-center">{dream.original_dream}</p>
+                <HR />
+                <h4 className="font-semibold mb-2">Interpretation:</h4>
+                <div className="mb-4">{renderInterpretation(dream)}</div>
+                {dream.interpretation_elements && dream.interpretation_elements.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="font-semibold mb-2">Additional Interpretation:</h4>
+                    {dream.interpretation_elements.map((element, index) => (
+                      <p key={index} className="mb-2">
+                        {element.content}
+                        {element.is_popover && element.popover_content && (
+                          <Popover
+                            content={
+                              <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
+                                <div className="px-3 py-2">
+                                  <p>{element.popover_content}</p>
+                                </div>
+                              </div>
+                            }
+                            trigger="hover"
+                          >
+                            <span className="text-blue-500 underline cursor-pointer"> (More info)</span>
+                          </Popover>
+                        )}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, index) => (
+                    <Badge key={index} color="indigo">#{tag}</Badge>
+                  ))}
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onClick={handleEdit}>Edit</Button>
+                <Button color="failure" onClick={handleDelete}>Delete</Button>
+                <Button color="gray" onClick={() => setIsModalOpen(false)}>Close</Button>
+              </Modal.Footer>
+            </motion.div>
+          </Modal>
+        )}
+      </AnimatePresence>
 
       {/* Edit modal */}
-      <Modal show={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} size="xl">
-        <Modal.Header>Edit Dream</Modal.Header>
-        <Modal.Body>
-          {/* Add form fields for editing the dream here */}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={() => {
-            // Handle save logic here
-            setIsEditModalOpen(false);
-          }}>Save</Button>
-          <Button color="gray" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-        </Modal.Footer>
-      </Modal>
+      <AnimatePresence mode="wait">
+        {isEditModalOpen && (
+          <Modal 
+            show={isEditModalOpen} 
+            onClose={() => setIsEditModalOpen(false)} 
+            size="xl"
+          >
+            <motion.div
+              variants={modalVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-full"
+            >
+              <Modal.Header>Edit Dream</Modal.Header>
+              <Modal.Body>
+                {/* Add form fields for editing the dream here */}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onClick={() => {
+                  // Handle save logic here
+                  setIsEditModalOpen(false);
+                }}>Save</Button>
+                <Button color="gray" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+              </Modal.Footer>
+            </motion.div>
+          </Modal>
+        )}
+      </AnimatePresence>
     </>
   );
 };

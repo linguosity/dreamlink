@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'flowbite';
+
+@font-face {
+  font-family: 'Blanka';
+  src: url('/fonts/Blanka.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* First, let's define our constants */
+:root {
+  --navbar-height: 64px;
+  --content-spacing: 1rem;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: 64px; /* Height of the navbar */
+}
+
+/* Establish proper stacking context */
+nav {
+  position: fixed !important; /* Ensure fixed positioning */
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--navbar-height);
+  z-index: 9999;
+  background-color: #1E3A8A;
+}
+
+/* Create a content wrapper with proper spacing */
+.content-wrapper {
+  margin-top: var(--navbar-height); /* Change from padding to margin */
+  position: relative;
+  z-index: 1;
+}
+
+/* Add margin to the form container */
+.relative.flex.items-center.justify-center {
+  margin-top: 80px; /* Add space below navbar */
+  margin-bottom: 2rem;
+  padding: 0 2rem;
+}
+
+main {
+  position: relative;
+  min-height: calc(100vh - 64px);
+  z-index: 1;
+  padding-top: 0; /* Remove this since we're adding margin to children */
+}
+
+/* Ensure background elements stay behind content */
+.fixed.inset-0.bg-black {
+  z-index: -2;
+}
+
+.fixed.inset-0.overflow-hidden {
+  z-index: -1;
+}
+
+#root, #__next {
+  height: 100%;
+}
+
+.sidebar {
+  width: 250px;
+  transition: width 0.3s;
+  height: calc(100vh - 64px); /* Adjust 64px if your navbar height is different */
+  overflow-y: auto;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toggle-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+}
+
+.cloud-textarea {
+  border: 0.5px grey dotted;
+  border-radius: 8px;
+  opacity: 0.9;
+}
+
+/* New styles for better mobile support */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+
+  .content {
+    height: calc(100vh - 64px); /* Adjust based on your navbar height */
+    overflow-y: auto;
+  }
+}
+
+/* Styles for SwipeCards */
+.swipe-card-container {
+  width: 100%;
+  height: calc(100vh - 64px); /* Adjust based on your navbar height */
+  overflow: hidden;
+  position: relative;
+}
+
+.swipe-card {
+  position: absolute;
+  width: 90%;
+  max-width: 400px;
+  height: 70vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cloud-shape {
+  animation: float 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  transition: all 0.3s ease;
+}
+
+/* Adjust dream grid layout */
+.dream-grid {
+  display: grid;
+  gap: 1.5rem;
+  padding: var(--content-spacing);
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+.dream-grid > div {
+  min-width: 200px;
+  width: 100%;
+}
+
+/* Add these styles for the modal and backdrop */
+[data-modal-backdrop] {
+  @apply bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40 !important;
+  opacity: 0.5;
+  inset: 0;
+}
+
+/* Glass effect for the modal content */
+.glass-modal-content {
+  @apply bg-white/80 dark:bg-gray-800/80 !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Remove any previous modal styling and add these new styles */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  min-height: 100vh !important;
+}
+
+/* Keep the modal backdrop blurred */
+[data-testid="modal-overlay"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Update glass-effect to be solid white/dark */
+.glass-effect {
+  background: rgb(255, 255, 255) !important; /* Solid white for light mode */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Add dark mode support */
+.dark .glass-effect {
+  background: rgb(31, 41, 55) !important; /* Solid dark background for dark mode */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :root {
+    --content-spacing: 0.75rem;
+  }
+}
+
+/* Handle background elements */
+.fixed.inset-0 {
+  z-index: -1;
+}
