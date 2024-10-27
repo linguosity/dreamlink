@@ -26,66 +26,52 @@ interface OpenAIAnalysisCardProps {
 }
 
 const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
-  if (dream.explanations) {
-    // New format
-    return dream.explanations.map((explanation: Explanation, index: number) => (
-      <p key={index} className="mb-2">
-        {explanation.sentence}{' '}
-        <Popover
-          content={
-            <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-              <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white">{explanation.citation.book}</h3>
-              </div>
-              <div className="px-3 py-2">
-                <p>{explanation.citation.text}</p>
-              </div>
-            </div>
-          }
-          trigger="hover"
-        >
-          <span className="text-blue-500 underline cursor-pointer">{explanation.citation.verse}</span>
-        </Popover>
+  console.log('Rendering dream data:', {
+    dream,
+    verses: dream.verses,
+    interpretationElements: dream.interpretation_elements,
+    dreamEntries: dream.dream_entries,
+    topicSentence: dream.interpretation_elements?.[0]?.content // Changed this
+  });
+
+  const elements: JSX.Element[] = [];
+
+  // Add topic sentence from interpretation_elements
+  if (dream.interpretation_elements?.[0]?.content) {
+    elements.push(
+      <p key="topic" className="mb-4 font-medium text-gray-900 dark:text-white">
+        {dream.interpretation_elements[0].content}
       </p>
-    ));
-  } else if (dream.dream_entries?.[0]?.analysis) {
-    // Old format
-    const interpretation = dream.dream_entries[0].analysis;
-    if (typeof interpretation === 'string') {
-      const parts = interpretation.split(/(<popover>[^<]+<\/popover>)/g);
-
-      return parts.map((part, index) => {
-        if (part.startsWith('<popover>') && part.endsWith('</popover>')) {
-          const verseReference = part.slice(9, -10);
-          const verse = dream.verses?.find(v => v.reference === verseReference);
-
-          if (verse) {
-            return (
-              <Popover
-                key={index}
-                trigger="hover"
-                content={
-                  <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{verse.reference}</h3>
-                    </div>
-                    <div className="px-3 py-2">
-                      <p>{verse.text}</p>
-                    </div>
-                  </div>
-                }
-              >
-                <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
-              </Popover>
-            );
-          }
-        }
-        return <span key={index}>{part}</span>;
-      });
-    }
+    );
   }
 
-  return [];
+  // Add verses with explanations
+  if (dream.verses && dream.verses.length > 0) {
+    dream.verses.forEach((verse, index) => {
+      elements.push(
+        <p key={index} className="mb-2">
+          {verse.explanation}{' '}
+          <Popover
+            content={
+              <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
+                <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{verse.book}</h3>
+                </div>
+                <div className="px-3 py-2">
+                  <p>{verse.text}</p>
+                </div>
+              </div>
+            }
+            trigger="hover"
+          >
+            <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
+          </Popover>
+        </p>
+      );
+    });
+  }
+
+  return elements;
 };
 
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, index }) => {
@@ -144,7 +130,13 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
       </Card>
 
       {/* Dream details modal */}
-      <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)} size="xl">
+      <Modal 
+        show={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        size="md" 
+        className="my-8"
+        position="center"
+      >
         <Modal.Header>{dream.title}</Modal.Header>
         <Modal.Body>
           {dream.topic_sentence && (
