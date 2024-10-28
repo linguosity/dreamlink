@@ -1,10 +1,10 @@
 import { type NextRequest, type NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 export function createSupabaseServerClient(component: boolean = false) {
-  cookies().getAll();
+  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,7 +27,7 @@ export function createSupabaseServerClient(component: boolean = false) {
 }
 
 export function createSupabaseServerComponentClient() {
-  cookies().getAll();
+  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
   return createSupabaseServerClient(true);
 }
 
@@ -35,7 +35,7 @@ export function createSupabaseReqResClient(
   req: NextRequest,
   res: NextResponse
 ) {
-  cookies().getAll();
+  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
