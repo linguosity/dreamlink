@@ -52,6 +52,7 @@ export default function DreamInputForm({ userId, userFullName, onAddDream, onSub
               value={input}
               onChange={(e) => setInput(e.target.value)}
               rows={1}
+              aria-label="Dream input"
               className="w-full p-4 text-lg bg-transparent text-white backdrop-blur-sm rounded-xl 
                          border border-white/20 focus:ring-2 focus:ring-blue-500/50 
                          focus:border-transparent resize-none transition-all duration-200
