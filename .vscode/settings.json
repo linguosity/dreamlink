@@ -17,11 +17,22 @@
     "Provideth",
     "subcomponents",
     "supabase",
-    "tailwindcss"
+    "tailwindcss",
+    "turbopack",
+    "flodlc",
+    "drei",
+    "lucide",
+    "swipeable",
+    "testid"
   ],
   "deno.enablePaths": [
     "supabase/functions"
   ],
   "deno.lint": true,
-  "deno.unstable": true
+  "deno.unstable": true,
+  "css.validate": false,
+  "tailwindCSS.validate": true,
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }

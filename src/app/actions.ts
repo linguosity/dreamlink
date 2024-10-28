@@ -26,7 +26,7 @@ export async function submitDream(
   language: string = 'en',
   bibleVersion: string = 'Tree of Life'
 ): Promise<DreamInterpretation | null>  {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
@@ -48,8 +48,7 @@ export async function submitDream(
     console.log('Dream interpretation:', dreamInterpretation);
 
     // Save to Supabase
-    const { data: dreamAnalysis, error: dreamError } = await supabase
-      .from('dream_analyses')
+    const { data: dreamAnalysis, error: dreamError } = await (await supabase).from('dream_analyses')
       .insert({
         user_id: session.user.id,
         original_dream: dreamText,
@@ -70,8 +69,7 @@ export async function submitDream(
       }
 
     // Insert interpretation elements
-    const { error: interpretationError } = await supabase
-      .from('interpretation_elements')
+    const { error: interpretationError } = await (await supabase).from('interpretation_elements')
       .insert({
         dream_analysis_id: dreamAnalysis.id,
         content: dreamInterpretation.topic_sentence,
@@ -82,8 +80,7 @@ export async function submitDream(
     if (interpretationError) throw interpretationError;
 
     // Insert verses
-    const { error: versesError } = await supabase
-      .from('verses')
+    const { error: versesError } = await (await supabase).from('verses')
       .insert(dreamInterpretation.explanations.map(explanation => ({
         dream_analysis_id: dreamAnalysis.id,
         reference: explanation.citation.verse,
@@ -102,8 +99,7 @@ export async function submitDream(
     ];
 
     for (const tag of allTags) {
-      const { data: existingTag } = await supabase
-        .from('tags')
+      const { data: existingTag } = await (await supabase).from('tags')
         .select('id')
         .eq('name', tag)
         .single();
@@ -112,8 +108,7 @@ export async function submitDream(
       if (existingTag) {
         tagId = existingTag.id;
       } else {
-        const { data: newTag, error: newTagError } = await supabase
-          .from('tags')
+        const { data: newTag, error: newTagError } = await (await supabase).from('tags')
           .insert({ name: tag })
           .select('id')
           .single();
@@ -122,8 +117,7 @@ export async function submitDream(
         tagId = newTag.id;
       }
 
-      const { error: dreamTagError } = await supabase
-        .from('dream_tags')
+      const { error: dreamTagError } = await (await supabase).from('dream_tags')
         .insert({
           dream_analysis_id: dreamAnalysis.id,
           tag_id: tagId

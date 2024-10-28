@@ -3,7 +3,7 @@
 import { Metadata } from 'next'
 import Head from 'next/head';
 import NavBar from '../components/NavBar'
-import { createSupabaseServerComponentClient } from "@/lib/utils/supabase/server-client";
+import { createSupabaseServerClient } from '@/lib/utils/supabase/server-client';
 import 'flowbite/dist/flowbite.css';
 import '../app/globals.css'; // Adjust this path if your global CSS is located elsewhere
 import { Poppins } from 'next/font/google';
@@ -27,7 +27,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createSupabaseServerComponentClient();
+  const supabase = await createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
 
   return (

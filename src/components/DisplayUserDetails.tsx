@@ -12,20 +12,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HTMLMotionProps } from 'framer-motion';
 import { MotionDiv } from '@/lib/motion';
 
-interface DisplayUserDetailsProps {
-  session: Session | null;
-  initialDreams: DreamItem[] | null;
-  initialError: any | null;
+export interface DisplayUserDetailsProps {
+  session: Session;
+  initialDreams: DreamItem[];
+  initialError: null | string;
+  userDetails: any; // Consider creating a proper type for user details
 }
 
 export default function DisplayUserDetails({
   session,
   initialDreams,
-  initialError
+  initialError,
+  userDetails
 }: DisplayUserDetailsProps) {
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
-  const [error, setError] = useState(initialError);
+  const [error, setError] = useState<string | null>(initialError);
   const isMobile = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(1);
@@ -59,12 +61,14 @@ export default function DisplayUserDetails({
         .delete()
         .eq('id', dreamId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        setError(deleteError.message); // Now properly converts to string
+        return;
+      }
 
       setDreams(prevDreams => prevDreams.filter(dream => dream.id !== dreamId));
     } catch (err) {
-      console.error('Error deleting dream:', err);
-      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     }
   };
 
@@ -75,14 +79,17 @@ export default function DisplayUserDetails({
         .update(updatedDream)
         .eq('id', updatedDream.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        setError(updateError.message); // Convert to string
+        return;
+      }
 
       setDreams(prevDreams => prevDreams.map(dream =>
         dream.id === updatedDream.id ? updatedDream : dream
       ));
     } catch (err) {
-      console.error('Error updating dream:', err);
-      setError(err as Error);
+      // Convert Error to string before setting
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     }
   };
 
@@ -108,7 +115,7 @@ export default function DisplayUserDetails({
         </div>
       </div>
 
-      {error && <p className="text-red-500">Error: {error.message}</p>}
+      {error && <p className="text-red-500">Error: {error}</p>}
 
       {dreams && dreams.length > 0 ? (
         isMobile ? (

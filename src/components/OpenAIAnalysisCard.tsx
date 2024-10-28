@@ -1,7 +1,7 @@
 'use client'
 
-import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
 import React, { useState, type JSX } from 'react';
+import { AnimatePresence } from "framer-motion";
 import { CloudIcon } from '@heroicons/react/24/outline';
 import { Card, Badge, Popover, Modal, Button, TextInput, Textarea, HR } from 'flowbite-react';
 import { DreamItem, Verse, Explanation } from '@/types/dreamAnalysis';

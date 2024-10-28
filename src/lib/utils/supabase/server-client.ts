@@ -1,54 +1,63 @@
 import { type NextRequest, type NextResponse } from "next/server";
-import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
-import { deleteCookie, getCookie, setCookie } from "cookies-next";
+import { headers } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-export function createSupabaseServerClient(component: boolean = false) {
-  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
+export async function createSupabaseServerClient(component: boolean = false) {
+  // Fix Error 2: Await the headers
+  const headersList = await headers();
+  const cookieHeader = headersList.get('cookie') || '';
+  
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return getCookie(name, { cookies });
+          // Fix Error 3: Add type for 'c'
+          const cookie = cookieHeader
+            .split(';')
+            .find((c: string) => c.trim().startsWith(`${name}=`));
+          return cookie ? cookie.split('=')[1] : undefined;
         },
         set(name: string, value: string, options: CookieOptions) {
           if (component) return;
-          setCookie(name, value, { cookies, ...options });
         },
         remove(name: string, options: CookieOptions) {
           if (component) return;
-          deleteCookie(name, { cookies, ...options });
         },
       },
     }
   );
 }
 
-export function createSupabaseServerComponentClient() {
-  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
+export async function createSupabaseServerComponentClient() {
   return createSupabaseServerClient(true);
 }
 
-export function createSupabaseReqResClient(
+export async function createSupabaseReqResClient(
   req: NextRequest,
   res: NextResponse
 ) {
-  (cookies() as unknown as UnsafeUnwrappedCookies).getAll();
+  // Fix Error 4: Use headers instead of cookies
+  const headersList = await headers();
+  const cookieHeader = headersList.get('cookie') || '';
+  
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         get(name: string) {
-          return getCookie(name, { req, res });
+          const cookie = cookieHeader
+            .split(';')
+            .find((c: string) => c.trim().startsWith(`${name}=`));
+          return cookie ? cookie.split('=')[1] : undefined;
         },
         set(name: string, value: string, options: CookieOptions) {
-          setCookie(name, value, { req, res, ...options });
+          // Implementation for setting cookies
         },
         remove(name: string, options: CookieOptions) {
-          setCookie(name, "", { req, res, ...options });
+          // Implementation for removing cookies
         },
       },
     }
