@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { useState } from 'react';
+import { MotionDiv } from '@/lib/motion';
 
 export default function NebulaBackground() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -10,7 +11,7 @@ export default function NebulaBackground() {
   return (
     <>
       <div className="fixed inset-0 bg-black z-[-2]" />
-      <motion.div
+      <MotionDiv
         className="fixed inset-0 z-[-1] overflow-hidden backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ 
@@ -39,7 +40,7 @@ export default function NebulaBackground() {
             sizes="100vw"
           />
         </div>
-      </motion.div>
+      </MotionDiv>
     </>
   );
 }

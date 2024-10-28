@@ -9,6 +9,8 @@ import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-clien
 import useIsMobile from "@/app/hooks/useIsMobile";
 import SwipeCards from './SwipeCards';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HTMLMotionProps } from 'framer-motion';
+import { MotionDiv } from '@/lib/motion';
 
 interface DisplayUserDetailsProps {
   session: Session | null;
@@ -126,20 +128,15 @@ export default function DisplayUserDetails({
           >
             <AnimatePresence>
               {dreams.map((dream, index) => (
-                <motion.div
+                <MotionDiv
                   key={dream.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                    duration: 0.5
-                  }}
-                  className="w-full min-w-[350px]"
-                  style={getGridPosition(index)}
+                  transition={{ type: "spring", bounce: 0.4 }}
+                  className="w-full"
+                  style={{ position: 'relative' }}
                 >
                   <OpenAIAnalysisCard
                     index={index}
@@ -147,7 +144,7 @@ export default function DisplayUserDetails({
                     onDelete={handleDelete}
                     onUpdate={handleUpdate}
                   />
-                </motion.div>
+                </MotionDiv>
               ))}
             </AnimatePresence>
           </div>

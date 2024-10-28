@@ -1,11 +1,12 @@
 'use client'
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
 import React, { useState, type JSX } from 'react';
 import { CloudIcon } from '@heroicons/react/24/outline';
 import { Card, Badge, Popover, Modal, Button, TextInput, Textarea, HR } from 'flowbite-react';
 import { DreamItem, Verse, Explanation } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
+import { MotionDiv } from '@/lib/motion';
 
 const getBibleVersionFullName = (code: string): string => {
   const versions: { [key: string]: string } = {
@@ -74,31 +75,20 @@ const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
   return elements;
 };
 
+// Define your modal variants
 const modalVariants = {
-  hidden: { 
-    opacity: 0,
-    scale: 0.98,
-    y: 20
-  },
-  visible: { 
+  hidden: { opacity: 0, scale: 0.8, y: 50 },
+  visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { 
+    transition: {
       type: "spring",
-      duration: 0.3,
-      bounce: 0.1
+      duration: 0.5,
+      bounce: 0.4
     }
   },
-  exit: { 
-    opacity: 0,
-    scale: 0.98,
-    y: 20,
-    transition: { 
-      duration: 0.2,
-      ease: "easeOut"
-    }
-  }
+  exit: { opacity: 0, scale: 0.8, y: 50 }
 };
 
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, index }) => {
@@ -174,7 +164,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
               }
             }}
           >
-            <motion.div
+            <MotionDiv
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -228,7 +218,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                 <Button color="failure" onClick={handleDelete}>Delete</Button>
                 <Button color="gray" onClick={() => setIsModalOpen(false)}>Close</Button>
               </Modal.Footer>
-            </motion.div>
+            </MotionDiv>
           </Modal>
         )}
       </AnimatePresence>
@@ -241,7 +231,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
             onClose={() => setIsEditModalOpen(false)} 
             size="xl"
           >
-            <motion.div
+            <MotionDiv
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -259,7 +249,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                 }}>Save</Button>
                 <Button color="gray" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
               </Modal.Footer>
-            </motion.div>
+            </MotionDiv>
           </Modal>
         )}
       </AnimatePresence>
