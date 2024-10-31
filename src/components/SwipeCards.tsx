@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Badge } from 'flowbite-react';
 import { DreamItem } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
+import { MotionDiv } from '@/lib/motion';
 
 interface SwipeCardsProps {
   dreams: DreamItem[];
@@ -62,14 +63,14 @@ const Card: React.FC<{
     : 'Date unknown';
 
   return (
-    <motion.div
+    <MotionDiv
       className="h-96 w-72 rounded-lg bg-white shadow-xl overflow-hidden"
       style={{
         gridRow: 1,
         gridColumn: 1,
-        x,
-        opacity,
-        rotate,
+        x: x as any,
+        opacity: opacity as any,
+        rotate: rotate as any,
         transition: "0.125s transform",
         boxShadow: isFront
           ? "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)"
@@ -102,7 +103,7 @@ const Card: React.FC<{
           ))}
         </div>
       </div>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
