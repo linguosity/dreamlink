@@ -12,18 +12,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HTMLMotionProps } from 'framer-motion';
 import { MotionDiv } from '@/lib/motion';
 
+// First, define the UserSettings type
+export interface UserSettings {
+  user_id: string;
+  language: string;
+  bible_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Then use it in the props interface
 export interface DisplayUserDetailsProps {
   session: Session;
   initialDreams: DreamItem[];
   initialError: null | string;
-  userDetails: any; // Consider creating a proper type for user details
+  userSettings: UserSettings;
 }
 
 export default function DisplayUserDetails({
   session,
   initialDreams,
   initialError,
-  userDetails
+  userSettings
 }: DisplayUserDetailsProps) {
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);

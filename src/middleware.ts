@@ -1,11 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const requestHeaders = new Headers(request.headers)
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
-      headers: requestHeaders,
+      headers: request.headers,
     },
   })
 
@@ -35,19 +34,21 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Paths that should be accessible only to authenticated users
-  const protectedPaths = ['/']
+  // Protected routes that require authentication
+  const protectedRoutes = ['/', '/account', '/settings']
+  const isProtectedRoute = protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))
 
-  // Check if the current path is protected
-  const isProtectedPath = protectedPaths.some(path => 
-    request.nextUrl.pathname.startsWith(path)
-  )
-
-  if (isProtectedPath && !session) {
-    // Redirect to login if accessing protected path without session
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (
+    !user &&
+    isProtectedRoute &&
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/auth')
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
   return response
@@ -55,13 +56,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
-  ],
+    // Match all paths except static files
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Optional: Also match API routes
+    '/api/:path*'
+  ]
 }

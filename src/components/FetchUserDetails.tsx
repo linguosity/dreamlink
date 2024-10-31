@@ -8,34 +8,20 @@ export default async function FetchUserDetails() {
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    if (sessionError) {
-      console.error('Session error:', sessionError);
+    if (sessionError || !session?.user) {
+      console.log('No session found or error:', sessionError);
       return null;
     }
 
-    if (!session?.user) {
-      console.log('No session found');
-      return null;
-    }
-
-    // Add this near the top of the function
-    console.log('Session user ID:', session?.user?.id);
-    console.log('Session:', JSON.stringify(session, null, 2));
-
-    // Fetch user details
-    const { data: userDetails, error: userError } = await supabase
-      .from('user_details')
+    // Only fetch user settings
+    const { data: userSettings, error: settingsError } = await supabase
+      .from('user_settings')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('user_id', session.user.id)
       .single();
 
-    if (userError) {
-      console.error('Error fetching user details:', userError.message, userError);
-      return null;
-    }
-
-    if (!userDetails) {
-      console.log('No user details found for id:', session.user.id);
+    if (settingsError) {
+      console.error('Error fetching user settings:', settingsError);
       return null;
     }
 
@@ -48,22 +34,24 @@ export default async function FetchUserDetails() {
           tags (
             name
           )
-        )
+        ),
+        interpretation_elements (*),
+        verses (*)
       `)
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (dreamError) {
-      console.error('Error fetching dreams:', dreamError.message, dreamError);
+      console.error('Error fetching dreams:', dreamError);
       return null;
     }
 
     return (
       <DisplayUserDetails
         session={session}
-        initialDreams={dreams}
+        initialDreams={dreams || []}
         initialError={null}
-        userDetails={userDetails} // Add this if needed by DisplayUserDetails
+        userSettings={userSettings}
       />
     );
     

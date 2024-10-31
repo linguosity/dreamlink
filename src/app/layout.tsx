@@ -2,6 +2,7 @@
 
 import { Metadata } from 'next'
 import Head from 'next/head';
+import { headers } from 'next/headers'  // Add this import
 import NavBar from '../components/NavBar'
 import { createSupabaseServerClient } from '@/lib/utils/supabase/server-client';
 import 'flowbite/dist/flowbite.css';
@@ -28,15 +29,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabase.auth.getSession();
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') || '/';
+  const isLoginPage = pathname === '/login';
 
   return (
     <html lang="en">
       <body className={`${poppins.className} bg-black min-h-screen`}>
         <UserSettingsProvider session={session}>
-          <NavBar session={session} />
+          {!isLoginPage && <NavBar session={session} />}
           <div className="content-wrapper">
-            <main className="pt-2"> {/* Changed from pt-[64px] to pt-20 */}
+            <main className={isLoginPage ? '' : 'pt-2'}>
               <NebulaBackground />
               {children}
             </main>

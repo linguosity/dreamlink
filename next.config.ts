@@ -4,9 +4,16 @@ const nextConfig: NextConfig = {
   // Enable Turbopack
   turbo: true,
 
-  // Images configuration
+  // Update images configuration to use remotePatterns
   images: {
-    domains: ['avatars.githubusercontent.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
 
