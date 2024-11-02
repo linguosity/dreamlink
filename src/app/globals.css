@@ -40,8 +40,6 @@ nav {
 
 /* Create a content wrapper with proper spacing */
 .content-wrapper {
-  margin-top: var(--navbar-height); /* Change from padding to margin */
-  position: relative;
   z-index: 1;
 }
 

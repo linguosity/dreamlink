@@ -3,16 +3,11 @@ import LoginCard from '@/components/LoginCard';
 
 export default function LoginPage() {
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      {/* <Image
-        src="/images/login-background.jpg"
-        alt="Login background"
-        layout="fill"
-        objectFit="cover"
-      /> */}
-      <div className="relative z-10 flex justify-center items-center min-h-screen">
+    <main className="fixed inset-0 flex min-h-screen items-center justify-center overflow-y-auto overflow-x-hidden px-4 py-16">
+      <div className="my-auto w-full max-w-md rounded-lg p-8 shadow-lg backdrop-blur-sm">
+        {/* Your existing login form content */}
         <LoginCard />
       </div>
-    </div>
+    </main>
   );
 }
