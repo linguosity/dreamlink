@@ -31,28 +31,21 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   const [openEditModal, setOpenEditModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const renderInterpretation = (dream: DreamItem): JSX.Element[] => {
-    console.log('Rendering dream data:', {
-      dream,
-      verses: dream.verses,
-      interpretationElements: dream.interpretation_elements,
-      dreamEntries: dream.dream_entries,
-      topicSentence: dream.interpretation_elements?.[0]?.content
-    });
-
+  const renderInterpretation = (dream: DreamItem, isModal: boolean = false): JSX.Element[] => {
     const elements: JSX.Element[] = [];
 
-    // Add topic sentence from interpretation_elements
+    // Add topic sentence from interpretation_elements without truncation
     if (dream.interpretation_elements?.[0]?.content) {
+      const content = dream.interpretation_elements[0].content;
       elements.push(
         <p key="topic" className="mb-4 font-medium text-gray-900 dark:text-white">
-          {dream.interpretation_elements[0].content}
+          {content}
         </p>
       );
     }
 
-    // Add verses with explanations
-    if (dream.verses && dream.verses.length > 0) {
+    // Only add verses with explanations if we're in the modal
+    if (isModal && dream.verses && dream.verses.length > 0) {
       dream.verses.forEach((verse, index) => {
         elements.push(
           <p key={index} className="mb-2">
@@ -64,7 +57,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                     <h3 className="font-semibold text-gray-900 dark:text-white">{verse.book}</h3>
                   </div>
                   <div className="px-3 py-2">
-                    <p>{verse.text}</p>
+                    <span>{verse.text}</span>
                   </div>
                 </div>
               }
@@ -132,8 +125,8 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
             : 'Date unknown'}
         </span>
         <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
-        <div className="mb-4 font-light">
-          {renderInterpretation(dream)}
+        <div className="mb-0 font-light">
+          {renderInterpretation(dream, false)}
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
           {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, index) => (
@@ -157,7 +150,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
           <HR />
           <h4 className="font-semibold mb-2">Interpretation:</h4>
           <div className="mb-4">
-            {renderInterpretation(dream)}
+            {renderInterpretation(dream, true)}
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -227,7 +220,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                 <p className="mb-4 text-center">{dream.original_dream}</p>
                 <HR />
                 <h4 className="font-semibold mb-2">Interpretation:</h4>
-                <div className="mb-4">{renderInterpretation(dream)}</div>
+                <div className="mb-4">{renderInterpretation(dream, true)}</div>
                 {/* Rest of modal body */}
               </Modal.Body>
             </motion.div>
