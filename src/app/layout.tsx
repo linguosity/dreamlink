@@ -29,7 +29,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createSupabaseServerClient();
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || '/';
   const isLoginPage = pathname === '/login';
@@ -38,9 +38,9 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} bg-black min-h-screen`}>
         <UserSettingsProvider session={session}>
-          {!isLoginPage && <NavBar session={session} />}
+          {session && <NavBar session={session} />}
           <div className="content-wrapper">
-            <main className={isLoginPage ? '' : 'pt-2'}>
+            <main className={isLoginPage ? 'h-screen' : 'pt-0'}>
               <NebulaBackground />
               {children}
             </main>
