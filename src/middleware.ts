@@ -4,8 +4,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  console.log('Middleware executing for path:', pathname);
+  
   // Skip middleware for auth callback routes
   if (pathname.startsWith('/auth/callback')) {
+    console.log('Skipping middleware for auth callback');
     return NextResponse.next()
   }
 
@@ -30,7 +33,7 @@ export async function middleware(request: NextRequest) {
             ...options,
             // Ensure cookies work cross-domain
             domain: process.env.NODE_ENV === 'production' 
-              ? '.vercel.app' 
+              ? 'dreamlink-iota.vercel.app' 
               : 'localhost'
           })
         },
