@@ -8,8 +8,14 @@ export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.refresh();
+    console.log('Starting logout...');
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Logout error:', error);
+    } else {
+      console.log('Logout successful');
+      router.refresh();
+    }
   };
 
   return <button onClick={handleLogout}>Logout</button>;

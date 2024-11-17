@@ -35,13 +35,16 @@ export default function LoginCard() {
   };
 
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    console.log('Starting Google login flow...');
+    const { error, data } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    console.log('Google login response:', { error, data });
     if (error) {
+      console.error('Google login error:', error);
       setError(error.message);
     }
   };
