@@ -9,8 +9,11 @@ export default function useSession() {
   const [supabase] = useState(() => createSupabaseBrowserClient());
 
   useEffect(() => {
+    console.log('useSession hook initialized');
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session);
       setSession(session);
     });
 
@@ -18,6 +21,7 @@ export default function useSession() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', { event: _event, session });
       setSession(session);
     });
 

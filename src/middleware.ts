@@ -2,6 +2,13 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Skip middleware for auth callback routes
+  if (pathname.startsWith('/auth/callback')) {
+    return NextResponse.next()
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -21,6 +28,10 @@ export async function middleware(request: NextRequest) {
             name,
             value,
             ...options,
+            // Ensure cookies work cross-domain
+            domain: process.env.NODE_ENV === 'production' 
+              ? '.vercel.app' 
+              : 'localhost'
           })
         },
         remove(name: string, options: CookieOptions) {
