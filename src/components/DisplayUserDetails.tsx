@@ -11,6 +11,7 @@ import SwipeCards from './SwipeCards';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HTMLMotionProps } from 'framer-motion';
 import { MotionDiv } from '@/lib/motion';
+import { UserSettingsRow } from "@/types/userSettings";
 
 // First, define the UserSettings type
 export interface UserSettings {
@@ -26,7 +27,7 @@ export interface DisplayUserDetailsProps {
   session: Session;
   initialDreams: DreamItem[];
   initialError: null | string;
-  userSettings: UserSettings;
+  userSettings: UserSettingsRow | null;
 }
 
 export default function DisplayUserDetails({

@@ -6,19 +6,18 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/utils/supabase/browser-client';
 import { Session } from "@supabase/supabase-js";
 import { Database } from '@/types/supabase';
-
-type UserSettings = Database['public']['Tables']['user_settings']['Row'];
+import { UserSettings, UserSettingsRow } from '@/types/userSettings';
 
 interface UserSettingsContextType {
-  settings: UserSettings | null;
-  setSettings: (settings: Partial<UserSettings> | ((prevSettings: UserSettings | null) => UserSettings | null) | null) => Promise<void>;
+  settings: UserSettings;
+  setSettings: (settings: Partial<UserSettingsRow> | ((prevSettings: UserSettings) => UserSettings) | null) => Promise<void>;
 }
 
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
 
 export const UserSettingsProvider = ({ children, session }: { children: React.ReactNode, session: Session | null }) => {
   const supabase = createSupabaseBrowserClient();
-  const [settings, setSettingsState] = useState<UserSettings | null>(null);
+  const [settings, setSettingsState] = useState<UserSettings>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -49,7 +48,7 @@ export const UserSettingsProvider = ({ children, session }: { children: React.Re
     fetchSettings();
   }, [session, supabase]);
 
-  const setSettings = async (newSettings: Partial<UserSettings> | ((prevSettings: UserSettings | null) => UserSettings | null) | null) => {
+  const setSettings = async (newSettings: Partial<UserSettingsRow> | ((prevSettings: UserSettings) => UserSettings) | null) => {
     if (typeof newSettings === 'function') {
       const updatedSettings = newSettings(settings);
       if (updatedSettings && session?.user) {
