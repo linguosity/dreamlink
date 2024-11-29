@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HTMLMotionProps } from 'framer-motion';
 import { MotionDiv } from '@/lib/motion';
 import { UserSettingsRow } from "@/types/userSettings";
+import { Badge } from 'flowbite-react';
 
 // First, define the UserSettings type
 export interface UserSettings {
@@ -39,6 +40,7 @@ export default function DisplayUserDetails({
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
   const [error, setError] = useState<string | null>(initialError);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(1);
@@ -113,12 +115,36 @@ export default function DisplayUserDetails({
     };
   };
 
+  const handleTagClick = (tag: string) => {
+    setSelectedTag(selectedTag === tag ? null : tag);
+  };
+
+  const filteredDreams = selectedTag
+    ? dreams.filter(dream => 
+        (dream.tags || [])
+          .concat(dream.dream_tags?.map(dt => dt.tags.name) || [])
+          .includes(selectedTag)
+      )
+    : dreams;
+
   if (!user) {
     return <p>Please log in to view your details.</p>;
   }
 
   return (
     <div className="space-y-6 m-8">
+      {selectedTag && (
+        <div className="flex items-center gap-2">
+          <Badge 
+            color="indigo" 
+            className="cursor-pointer" 
+            onClick={() => setSelectedTag(null)}
+          >
+            #{selectedTag} ×
+          </Badge>
+        </div>
+      )}
+
       <div className="relative flex items-center justify-center">
        
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
@@ -131,9 +157,10 @@ export default function DisplayUserDetails({
       {dreams && dreams.length > 0 ? (
         isMobile ? (
           <SwipeCards
-            dreams={dreams}
+            dreams={filteredDreams}
             onUpdate={handleUpdate}
             onDelete={handleDelete}
+            onTagClick={handleTagClick}
           />
         ) : (
           <div 
@@ -144,23 +171,27 @@ export default function DisplayUserDetails({
               gap: '1rem'
             }}
           >
-            <AnimatePresence>
-              {dreams.map((dream, index) => (
+            <AnimatePresence mode="wait">
+              {filteredDreams.map((dream, index) => (
                 <MotionDiv
                   key={dream.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ type: "spring", bounce: 0.4 }}
-                  className="w-full"
-                  style={{ position: 'relative' }}
+                  transition={{ 
+                    type: "spring", 
+                    bounce: 0.3,
+                    duration: 0.6 
+                  }}
+                  className="w-full relative"
                 >
                   <OpenAIAnalysisCard
                     index={index}
                     dream={dream}
                     onDelete={handleDelete}
                     onUpdate={handleUpdate}
+                    onTagClick={handleTagClick}
                   />
                 </MotionDiv>
               ))}

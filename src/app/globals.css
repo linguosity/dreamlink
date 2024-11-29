@@ -208,3 +208,31 @@ main {
 .fixed.inset-0 {
   z-index: -1;
 }
+
+/* Add these z-index rules */
+.modal-overlay {
+  z-index: 50;
+}
+
+.dream-card {
+  z-index: 1;
+}
+
+.modal-content {
+  z-index: 51;
+}
+
+/* Add these styles */
+[role="dialog"] {
+  position: fixed;
+  z-index: 100;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
+/* Remove any existing modal-related z-index rules that might conflict */

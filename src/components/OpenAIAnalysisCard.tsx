@@ -23,13 +23,17 @@ interface OpenAIAnalysisCardProps {
   dream: DreamItem;
   onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamItem) => void;
+  onTagClick: (tag: string) => void;
   index: number;
 }
 
-const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, index }) => {
+const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, onTagClick, index }) => {
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log('Modal state changed:', openModal);
+  }, [openModal]);
 
   const renderInterpretation = (dream: DreamItem, isModal: boolean = false): JSX.Element[] => {
     const elements: JSX.Element[] = [];
@@ -38,9 +42,9 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
     if (dream.interpretation_elements?.[0]?.content) {
       const content = dream.interpretation_elements[0].content;
       elements.push(
-        <p key="topic" className="mb-4 font-medium text-gray-900 dark:text-white">
+        <div key="topic" className="mb-4 font-medium text-gray-900 dark:text-white">
           {content}
-        </p>
+        </div>
       );
     }
 
@@ -48,7 +52,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
     if (isModal && dream.verses && dream.verses.length > 0) {
       dream.verses.forEach((verse, index) => {
         elements.push(
-          <p key={index} className="mb-2">
+          <div key={index} className="mb-2">
             {verse.explanation}{' '}
             <Popover
               content={
@@ -65,7 +69,7 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
             >
               <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
             </Popover>
-          </p>
+          </div>
         );
       });
     }
@@ -73,8 +77,18 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
     return elements;
   };
 
-  const handleCardClick = () => {
-    setOpenModal(true);
+  const handleCardClick = (e: React.MouseEvent) => {
+    console.log('=== Card Click Debug ===');
+    console.log('Event target:', e.target);
+    console.log('Current target:', e.currentTarget);
+    console.log('Is tag badge?:', !!(e.target as HTMLElement).closest('[data-tag-badge="true"]'));
+    console.log('Modal state before:', openModal);
+    
+    if (!(e.target as HTMLElement).closest('[data-tag-badge="true"]')) {
+      console.log('Setting modal to open');
+      setOpenModal(true);
+      console.log('Modal state after set:', openModal);
+    }
   };
 
   const handleEdit = () => {
@@ -86,85 +100,79 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
     onDelete(dream.id);
   };
 
-  const modalVariants = {
-    hidden: { 
-      opacity: 0,
-      scale: 0.98,
-      y: 20
-    },
-    visible: { 
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: { 
-        type: "spring",
-        duration: 0.3,
-        bounce: 0.1
-      }
-    },
-    exit: { 
-      opacity: 0,
-      scale: 0.98,
-      y: 20,
-      transition: { 
-        duration: 0.2,
-        ease: "easeOut"
-      }
-    }
-  };
-
   return (
     <>
-      <Card 
-        className="animate-fade-up w-full cursor-pointer hover:shadow-lg transition-shadow duration-600 animate-delay-[123ms] rounded-2xl"
-        onClick={handleCardClick}
-      >
-        <span className="font-normal text-sm text-yellow-600 italic dark:text-gray-400">
-          {dream.created_at 
-            ? dayjs(dream.created_at).format('MMMM D, YYYY')
-            : 'Date unknown'}
-        </span>
-        <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
-        <div className="mb-0 font-light">
-          {renderInterpretation(dream, false)}
+      <Card className="w-full h-full flex flex-col">
+        <div 
+          onClick={handleCardClick}
+          className="flex-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors p-4"
+        >
+          <span className="block font-normal text-sm text-yellow-600 italic dark:text-gray-400">
+            {dream.created_at 
+              ? dayjs(dream.created_at).format('MMMM D, YYYY')
+              : 'Date unknown'}
+          </span>
+          <h3 className="text-lg font-medium mb-2">{dream.title}</h3>
+          <div className="mb-4 font-light">
+            {renderInterpretation(dream, false)}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2 mt-4">
-          {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, index) => (
-            <Badge key={index} color="indigo">#{tag}</Badge>
-          ))}
-        </div>
-        <div className="mt-2 text-sm text-gray-400 italic">
-          {`${getBibleVersionFullName(dream.bible_version)} | ${dream.language}`}
+
+        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+          <div className="flex flex-wrap gap-2 mb-2">
+            {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, index) => (
+              <Badge 
+                key={index} 
+                color="indigo" 
+                data-tag-badge="true"
+                className="cursor-pointer hover:bg-indigo-600 transition-colors dream-tag-badge"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTagClick(tag);
+                }}
+              >
+                #{tag}
+              </Badge>
+            ))}
+          </div>
+          <div className="text-sm text-gray-400 italic">
+            {`${getBibleVersionFullName(dream.bible_version)} | ${dream.language}`}
+          </div>
         </div>
       </Card>
 
-      <Modal
-        show={openModal}
-        onClose={() => setOpenModal(false)}
-        size="7xl"
-        position="center"
-      >
-        <Modal.Header>{dream.title}</Modal.Header>
-        <Modal.Body>
-          <p className="mb-4 text-center">{dream.original_dream}</p>
-          <HR />
-          <h4 className="font-semibold mb-2">Interpretation:</h4>
-          <div className="mb-4">
-            {renderInterpretation(dream, true)}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={handleEdit}>
-            Edit
-          </Button>
-          <Button color="failure" onClick={handleDelete}>
-            Delete
-          </Button>
-          <Button color="gray" onClick={() => setOpenModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {openModal && (
+        <Modal
+          show={true}
+          onClose={() => setOpenModal(false)}
+          size="7xl"
+          dismissible
+          popup={false}
+        >
+          <Modal.Header>
+            {dream.title}
+          </Modal.Header>
+          <Modal.Body>
+            <p className="mb-4 text-center">{dream.original_dream}</p>
+            <HR />
+            <h4 className="font-semibold mb-2">Interpretation:</h4>
+            <div className="mb-4">
+              {renderInterpretation(dream, true)}
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={handleEdit}>
+              Edit
+            </Button>
+            <Button color="failure" onClick={handleDelete}>
+              Delete
+            </Button>
+            <Button color="gray" onClick={() => setOpenModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
 
       <Modal
         show={openEditModal}
@@ -184,49 +192,6 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <AnimatePresence mode="wait">
-        {isModalOpen && (
-          <Modal 
-            show={isModalOpen} 
-            onClose={() => setIsModalOpen(false)} 
-            size="7xl"
-            position="center"
-            theme={{
-              root: {
-                base: "fixed inset-0 z-50 flex items-center justify-center"
-              },
-              content: {
-                base: "relative w-full p-4",
-                inner: "relative rounded-lg glass-effect max-w-4xl mx-auto"
-              }
-            }}
-          >
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              style={{ width: '100%' }}
-            >
-              <Modal.Header>{dream.title}</Modal.Header>
-              <Modal.Body>
-                {dream.topic_sentence && (
-                  <p className="mb-4 font-semibold">{dream.topic_sentence}</p>
-                )}
-                <p className="flex text-center justify-center gap-2 mb-4">
-                  <CloudIcon className="size-6" />
-                </p>
-                <p className="mb-4 text-center">{dream.original_dream}</p>
-                <HR />
-                <h4 className="font-semibold mb-2">Interpretation:</h4>
-                <div className="mb-4">{renderInterpretation(dream, true)}</div>
-                {/* Rest of modal body */}
-              </Modal.Body>
-            </motion.div>
-          </Modal>
-        )}
-      </AnimatePresence>
     </>
   );
 };

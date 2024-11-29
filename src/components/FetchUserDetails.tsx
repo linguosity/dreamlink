@@ -23,6 +23,8 @@ export default function FetchUserDetails() {
       
       try {
         setLoading(true);
+        console.log('Fetching data for user:', session.user.id);
+        
         // Fetch user settings
         const { data: settings, error: settingsError } = await supabase
           .from('user_settings')
@@ -55,7 +57,10 @@ export default function FetchUserDetails() {
           setUserSettings(settings as UserSettings);
           setLoading(false);
         }
+
+        console.log('Fetched dream data:', dreamData);
       } catch (err) {
+        console.error('Error in fetchData:', err);
         if (mounted) {
           console.error('Error fetching data:', err);
           setError(err instanceof Error ? err : new Error('Unknown error'));
@@ -75,13 +80,31 @@ export default function FetchUserDetails() {
           event: '*',
           schema: 'public',
           table: 'dream_analyses',
-          filter: `user_id=eq.${session?.user?.id || ''}`
+          filter: `user_id=eq.${session?.user?.id}`
         },
-        () => {
-          fetchData(); // Refetch all data when changes occur
-        }
+        () => fetchData()
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dream_tags'
+        },
+        () => fetchData()
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tags'
+        },
+        () => fetchData()
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
       mounted = false;

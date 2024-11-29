@@ -9,9 +9,10 @@ interface SwipeCardsProps {
   dreams: DreamItem[];
   onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamItem) => void;
+  onTagClick: (tag: string) => void;
 }
 
-const SwipeCards: React.FC<SwipeCardsProps> = ({ dreams, onDelete, onUpdate }) => {
+const SwipeCards: React.FC<SwipeCardsProps> = ({ dreams, onDelete, onUpdate, onTagClick }) => {
   const [cards, setCards] = useState<DreamItem[]>(dreams);
 
   return (
@@ -28,20 +29,24 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({ dreams, onDelete, onUpdate }) =
           index={index}
           onDelete={onDelete}
           onUpdate={onUpdate}
+          onTagClick={onTagClick}
         />
       ))}
     </div>
   );
 };
 
-const Card: React.FC<{
+interface CardProps {
   dream: DreamItem;
   cards: DreamItem[];
   setCards: React.Dispatch<React.SetStateAction<DreamItem[]>>;
   index: number;
   onDelete: (id: string) => void;
   onUpdate: (updatedDream: DreamItem) => void;
-}> = ({ dream, cards, setCards, index, onDelete, onUpdate }) => {
+  onTagClick: (tag: string) => void;
+}
+
+const Card: React.FC<CardProps> = ({ dream, cards, setCards, index, onDelete, onUpdate, onTagClick }) => {
   const x = useMotionValue(0);
   const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
@@ -55,6 +60,16 @@ const Card: React.FC<{
     if (Math.abs(x.get()) > 100) {
       setCards((prevCards) => prevCards.filter((card) => card.id !== dream.id));
       onDelete(dream.id);
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    console.log('Card clicked');
+    console.log('Click target:', (e.target as HTMLElement).tagName);
+    console.log('Is tag badge?:', !!(e.target as HTMLElement).closest('[data-tag-badge="true"]'));
+    
+    if (!(e.target as HTMLElement).closest('[data-tag-badge="true"]')) {
+      handleDragEnd();
     }
   };
 
@@ -86,7 +101,10 @@ const Card: React.FC<{
       }}
       onDragEnd={handleDragEnd}
     >
-      <div className="p-4 h-full flex flex-col">
+      <div 
+        className="p-4 cursor-pointer"
+        onClick={handleCardClick}
+      >
         <span className="font-normal text-sm text-yellow-600 italic">
           {formattedDate}
         </span>
@@ -97,9 +115,24 @@ const Card: React.FC<{
            dream.title || 
            'No interpretation available.'}
         </div>
-        <div className="flex flex-wrap gap-2 mt-auto">
+      </div>
+
+      <div className="px-4 pb-4 pt-2 border-t border-gray-100 bg-gray-50/50">
+        <div className="flex flex-wrap gap-2">
           {(dream.tags || []).concat(dream.dream_tags?.map(dt => dt.tags.name) || []).map((tag, tagIndex) => (
-            <Badge key={tagIndex} color="indigo">#{tag}</Badge>
+            <Badge 
+              key={tagIndex} 
+              color="indigo"
+              data-tag-badge="true"
+              className="cursor-pointer hover:bg-indigo-600 transition-colors dream-tag-badge"
+              onClick={(e) => {
+                console.log('Tag clicked:', tag);
+                e.stopPropagation();
+                onTagClick(tag);
+              }}
+            >
+              #{tag}
+            </Badge>
           ))}
         </div>
       </div>
