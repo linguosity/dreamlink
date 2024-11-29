@@ -8,6 +8,11 @@ import { DreamItem, Verse, Explanation } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
 import { MotionDiv } from '@/lib/motion';
 
+type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & HTMLMotionProps<"div">;
+
+const Backdrop: React.FC<MotionDivProps> = motion.div;
+const ModalContent: React.FC<MotionDivProps> = motion.div;
+
 const getBibleVersionFullName = (code: string): string => {
   const versions: { [key: string]: string } = {
     'KJV': 'King James Version',
@@ -26,6 +31,32 @@ interface OpenAIAnalysisCardProps {
   onTagClick: (tag: string) => void;
   index: number;
 }
+
+const modalVariants = {
+  hidden: {
+    y: "-100vh",
+    opacity: 0
+  },
+  visible: {
+    y: "0",
+    opacity: 1,
+    transition: {
+      duration: 0.1,
+      type: "spring",
+      damping: 25,
+      stiffness: 500
+    }
+  },
+  exit: {
+    y: "100vh",
+    opacity: 0
+  }
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 }
+};
 
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, onTagClick, index }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -141,38 +172,69 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
         </div>
       </Card>
 
-      {openModal && (
-        <Modal
-          show={true}
-          onClose={() => setOpenModal(false)}
-          size="7xl"
-          dismissible
-          popup={false}
-        >
-          <Modal.Header>
-            {dream.title}
-          </Modal.Header>
-          <Modal.Body>
-            <p className="mb-4 text-center">{dream.original_dream}</p>
-            <HR />
-            <h4 className="font-semibold mb-2">Interpretation:</h4>
-            <div className="mb-4">
-              {renderInterpretation(dream, true)}
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button onClick={handleEdit}>
-              Edit
-            </Button>
-            <Button color="failure" onClick={handleDelete}>
-              Delete
-            </Button>
-            <Button color="gray" onClick={() => setOpenModal(false)}>
-              Close
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+      <AnimatePresence mode="wait">
+        {openModal && (
+          <Modal
+            show={true}
+            onClose={() => setOpenModal(false)}
+            size="7xl"
+            dismissible
+            popup={false}
+          >
+            <Backdrop
+              style={{ 
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                zIndex: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              onClick={() => setOpenModal(false)}
+            >
+              <ModalContent
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                style={{ 
+                  position: 'relative',
+                  zIndex: 50,
+                  width: 'auto',
+                  maxWidth: '90%',
+                  margin: '20px',
+                  backgroundColor: 'white',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Modal.Header>
+                  {dream.title}
+                </Modal.Header>
+                <Modal.Body>
+                  <div className="mb-4 text-center">{dream.original_dream}</div>
+                  <HR />
+                  <h4 className="font-semibold mb-2">Interpretation:</h4>
+                  <div className="mb-4">
+                    {renderInterpretation(dream, true)}
+                  </div>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button onClick={handleEdit}>Edit</Button>
+                  <Button color="failure" onClick={handleDelete}>Delete</Button>
+                  <Button color="gray" onClick={() => setOpenModal(false)}>Close</Button>
+                </Modal.Footer>
+              </ModalContent>
+            </Backdrop>
+          </Modal>
+        )}
+      </AnimatePresence>
 
       <Modal
         show={openEditModal}

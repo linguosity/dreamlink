@@ -133,23 +133,20 @@ export default function DisplayUserDetails({
 
   return (
     <div className="space-y-6 m-8">
-      {selectedTag && (
-        <div className="flex items-center gap-2">
-          <Badge 
-            color="indigo" 
-            className="cursor-pointer" 
-            onClick={() => setSelectedTag(null)}
-          >
-            #{selectedTag} ×
-          </Badge>
-        </div>
-      )}
-
-      <div className="relative flex items-center justify-center">
-       
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-center">
-          <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
-        </div>
+      <div className="flex flex-col items-center mb-8">
+        <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
+        
+        {selectedTag && (
+          <div className="self-start mt-2 px-16">
+            <Badge 
+              color="indigo" 
+              className="cursor-pointer" 
+              onClick={() => setSelectedTag(null)}
+            >
+              #{selectedTag} ×
+            </Badge>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-red-500">Error: {error}</p>}
