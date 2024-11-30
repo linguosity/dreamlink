@@ -12,14 +12,15 @@ export default function NebulaBackground() {
     <>
       <div className="fixed inset-0 bg-black z-[-2]" />
       <MotionDiv
-        className="fixed inset-0 z-[-1] overflow-hidden backdrop-blur-sm"
-        initial={{ opacity: 0 }}
+        className="fixed inset-0 z-[-1] overflow-hidden"
+        initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
         animate={{ 
           opacity: isLoaded ? 0.4 : 0,
-          rotate: 360 
+          backdropFilter: isLoaded ? 'blur(8px)' : 'blur(0px)',
         }}
         transition={{
           opacity: { duration: 2 },
+          backdropFilter: { duration: 0.5 },
           rotate: { 
             duration: 500,
             repeat: Infinity,

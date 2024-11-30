@@ -32,30 +32,54 @@ interface OpenAIAnalysisCardProps {
   index: number;
 }
 
-const modalVariants = {
+const backdropVariants = {
   hidden: {
-    y: "-100vh",
-    opacity: 0
+    opacity: 0,
+    backdropFilter: 'blur(0px)',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
   },
   visible: {
-    y: "0",
     opacity: 1,
+    backdropFilter: 'blur(8px)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     transition: {
-      duration: 0.1,
-      type: "spring",
-      damping: 25,
-      stiffness: 500
-    }
+      duration: 0.3,
+      ease: 'easeInOut',
+    },
   },
   exit: {
-    y: "100vh",
-    opacity: 0
-  }
+    opacity: 0,
+    backdropFilter: 'blur(0px)',
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+    transition: {
+      duration: 0.3,
+      ease: 'easeInOut',
+    },
+  },
 };
 
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 }
+const modalVariants = {
+  hidden: {
+    opacity: 0,
+    y: '-100vh',
+  },
+  visible: {
+    opacity: 1,
+    y: '0',
+    transition: {
+      duration: 0.3,
+      type: 'spring',
+      damping: 25,
+      stiffness: 500,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: '100vh',
+    transition: {
+      duration: 0.3,
+    },
+  },
 };
 
 const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete, onUpdate, onTagClick, index }) => {
@@ -64,6 +88,15 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
 
   useEffect(() => {
     console.log('Modal state changed:', openModal);
+  }, [openModal]);
+
+  useEffect(() => {
+    if (openModal) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
   }, [openModal]);
 
   const renderInterpretation = (dream: DreamItem, isModal: boolean = false): JSX.Element[] => {
@@ -175,67 +208,73 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
         </div>
       </Card>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence
+        mode="wait"
+        onExitComplete={() => {
+          document.body.style.overflow = 'auto';
+        }}
+      >
         {openModal && (
-          <Modal
-            show={true}
-            onClose={() => setOpenModal(false)}
-            size="7xl"
-            dismissible
-            popup={false}
+          <Backdrop
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              willChange: 'backdrop-filter, opacity',
+            }}
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={() => setOpenModal(false)}
           >
-            <Backdrop
-              style={{ 
-                position: 'fixed',
-                inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                zIndex: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              variants={backdropVariants}
+            <ModalContent
+              variants={modalVariants}
               initial="hidden"
               animate="visible"
-              exit="hidden"
-              onClick={() => setOpenModal(false)}
+              exit="exit"
+              style={{
+                position: 'relative',
+                zIndex: 50,
+                width: '50vw',
+                minWidth: '400px',
+                maxWidth: '90%',
+                margin: '20px',
+                backgroundColor: 'white',
+                borderRadius: '0.5rem',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-gray-800 p-6"
             >
-              <ModalContent
-                variants={modalVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                style={{ 
-                  position: 'relative',
-                  zIndex: 50,
-                  width: 'auto',
-                  maxWidth: '90%',
-                  margin: '20px',
-                  backgroundColor: 'white',
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Modal.Header>
-                  {dream.title}
-                </Modal.Header>
-                <Modal.Body>
-                  {/* <div className="mb-4 text-center">{dream.original_dream}</div>
-                  <HR />
-                  <h4 className="font-semibold mb-2">Interpretation:</h4> */}
-                  <div className="mb-4">
-                    {renderInterpretation(dream, true)}
-                  </div>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button onClick={handleEdit}>Edit</Button>
-                  <Button color="failure" onClick={handleDelete}>Delete</Button>
-                  <Button color="gray" onClick={() => setOpenModal(false)}>Close</Button>
-                </Modal.Footer>
-              </ModalContent>
-            </Backdrop>
-          </Modal>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold">{dream.title}</h3>
+                <button
+                  onClick={() => setOpenModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                {renderInterpretation(dream, true)}
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <Button onClick={handleEdit}>Edit</Button>
+                <Button color="failure" onClick={handleDelete}>
+                  Delete
+                </Button>
+                <Button color="gray" onClick={() => setOpenModal(false)}>
+                  Close
+                </Button>
+              </div>
+            </ModalContent>
+          </Backdrop>
         )}
       </AnimatePresence>
 

@@ -156,83 +156,42 @@ main {
 }
 
 /* Add these styles for the modal and backdrop */
-[data-modal-backdrop] {
-  @apply bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40 !important;
-  opacity: 0.5;
-  inset: 0;
-}
-
-/* Glass effect for the modal content */
-.glass-modal-content {
-  @apply bg-white/80 dark:bg-gray-800/80 !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* Remove any previous modal styling and add these new styles */
 .modal-backdrop {
-  background: rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  min-height: 100vh !important;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: backdrop-filter, opacity;
+  transition: backdrop-filter 0.3s ease-in-out;
 }
 
-/* Keep the modal backdrop blurred */
-[data-testid="modal-overlay"] {
-  margin: 0 !important;
-  padding: 0 !important;
-  background: rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+.modal-content {
+  position: relative;
+  z-index: 41;
+  width: 100%;
+  max-width: 90%;
+  margin: 20px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  will-change: transform, opacity;
 }
 
-/* Update glass-effect to be solid white/dark */
-.glass-effect {
-  background: rgb(255, 255, 255) !important; /* Solid white for light mode */
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+/* Dark mode support for modal content */
+.modal-content {
+  @apply bg-white dark:bg-gray-800;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Add dark mode support */
-.dark .glass-effect {
-  background: rgb(31, 41, 55) !important; /* Solid dark background for dark mode */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  :root {
-    --content-spacing: 0.75rem;
-  }
-}
-
-/* Handle background elements */
-.fixed.inset-0 {
-  z-index: -1;
-}
-
-/* Add these z-index rules */
-.modal-overlay {
-  z-index: 50;
-}
-
+/* Ensure proper z-index stacking */
 .dream-card {
   z-index: 1;
 }
 
-.modal-content {
-  z-index: 51;
-}
-
-/* Add these styles */
 [role="dialog"] {
   position: fixed;
   z-index: 100;
 }
 
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 99;
-}
-
-/* Remove any existing modal-related z-index rules that might conflict */
+/* Remove any other conflicting modal styles */
