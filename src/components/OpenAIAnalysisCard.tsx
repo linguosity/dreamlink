@@ -69,40 +69,43 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
   const renderInterpretation = (dream: DreamItem, isModal: boolean = false): JSX.Element[] => {
     const elements: JSX.Element[] = [];
 
-    // Add topic sentence from interpretation_elements without truncation
-    if (dream.interpretation_elements?.[0]?.content) {
-      const content = dream.interpretation_elements[0].content;
-      elements.push(
-        <div key="topic" className="mb-4 font-medium text-gray-900 dark:text-white">
-          {content}
-        </div>
-      );
-    }
-
-    // Only add verses with explanations if we're in the modal
-    if (isModal && dream.verses && dream.verses.length > 0) {
-      dream.verses.forEach((verse, index) => {
+    if (dream.interpretation_elements && dream.interpretation_elements.length > 0) {
+      if (isModal) {
+        // For modal view: Show full interpretation with embedded verse references
+        const verses = dream.verses ?? [];
         elements.push(
-          <div key={index} className="mb-2">
-            {verse.explanation}{' '}
-            <Popover
-              content={
-                <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{verse.book}</h3>
-                  </div>
-                  <div className="px-3 py-2">
-                    <span>{verse.text}</span>
-                  </div>
-                </div>
-              }
-              trigger="hover"
-            >
-              <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
-            </Popover>
+          <div key="interpretation" className="font-medium text-gray-900 dark:text-white mb-4">
+            {dream.interpretation_elements[0].content}
+            {verses.map((verse, index) => (
+              <React.Fragment key={`verse-${index}`}>
+                {' '}{verse.explanation}{' '}
+                <Popover
+                  content={
+                    <div className="w-64 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{verse.book}</h3>
+                      </div>
+                      <div className="px-3 py-2">
+                        <span>{verse.text}</span>
+                      </div>
+                    </div>
+                  }
+                  trigger="hover"
+                >
+                  <span className="text-blue-500 underline cursor-pointer">{verse.reference}</span>
+                </Popover>
+              </React.Fragment>
+            ))}
           </div>
         );
-      });
+      } else {
+        // For card view: Show only the main interpretation
+        elements.push(
+          <div key="interpretation" className="font-medium text-gray-900 dark:text-white mb-4">
+            {dream.interpretation_elements[0].content}
+          </div>
+        );
+      }
     }
 
     return elements;
@@ -218,9 +221,9 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                   {dream.title}
                 </Modal.Header>
                 <Modal.Body>
-                  <div className="mb-4 text-center">{dream.original_dream}</div>
+                  {/* <div className="mb-4 text-center">{dream.original_dream}</div>
                   <HR />
-                  <h4 className="font-semibold mb-2">Interpretation:</h4>
+                  <h4 className="font-semibold mb-2">Interpretation:</h4> */}
                   <div className="mb-4">
                     {renderInterpretation(dream, true)}
                   </div>

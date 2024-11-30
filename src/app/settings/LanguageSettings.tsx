@@ -14,7 +14,7 @@ const languages = [
 ];
 
 export default function LanguageSettings() {
-  const { settings, setSettings } = useUserSettings();
+  const { settings, setSettings, showNotification } = useUserSettings();
   const [language, setLanguageState] = useState(settings?.language ?? 'en');
 
   useEffect(() => {
@@ -23,8 +23,7 @@ export default function LanguageSettings() {
 
   const handleSave = async () => {
     await setSettings(prev => prev ? { ...prev, language } : null);
-    console.log('Updated language setting:', language);
-    alert('Language preference saved!');
+    showNotification('Language preference updated successfully!', 'success');
   };
 
   return (

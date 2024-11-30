@@ -14,7 +14,7 @@ const bibleVersions = [
 ];
 
 export default function BibleVersionSettings() {
-  const { settings, setSettings } = useUserSettings();
+  const { settings, setSettings, showNotification } = useUserSettings();
   const [bibleVersion, setBibleVersionState] = useState(settings?.bible_version ?? 'KJV');
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function BibleVersionSettings() {
 
   const handleSave = async () => {
     await setSettings(prev => prev ? { ...prev, bible_version: bibleVersion } : null);
-    alert('Bible version preference saved!');
+    showNotification('Bible version updated successfully!', 'success');
   };
 
   return (
