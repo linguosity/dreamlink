@@ -5,13 +5,37 @@ import { useUserSettings } from '@/context/UserSettingsContext';
 import { Dropdown } from 'flowbite-react';
 
 const languages = [
+  { code: 'simple', name: 'Simple (Generic)' },
+  { code: 'ar', name: 'Arabic' },
+  { code: 'hy', name: 'Armenian' },
+  { code: 'eu', name: 'Basque' },
+  { code: 'ca', name: 'Catalan' },
+  { code: 'da', name: 'Danish' },
+  { code: 'nl', name: 'Dutch' },
   { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
+  { code: 'fi', name: 'Finnish' },
   { code: 'fr', name: 'French' },
   { code: 'de', name: 'German' },
+  { code: 'el', name: 'Greek' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'hu', name: 'Hungarian' },
+  { code: 'id', name: 'Indonesian' },
+  { code: 'ga', name: 'Irish' },
   { code: 'it', name: 'Italian' },
-  // Add more languages as needed
+  { code: 'lt', name: 'Lithuanian' },
+  { code: 'ne', name: 'Nepali' },
+  { code: 'no', name: 'Norwegian' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'ro', name: 'Romanian' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'sr', name: 'Serbian' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'sv', name: 'Swedish' },
+  { code: 'ta', name: 'Tamil' },
+  { code: 'tr', name: 'Turkish' },
+  { code: 'yi', name: 'Yiddish' },
 ];
+
 
 export default function LanguageSettings() {
   const { settings, setSettings, showNotification } = useUserSettings();

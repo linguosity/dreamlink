@@ -15,21 +15,23 @@ export default function FetchUserDetails() {
   const [loading, setLoading] = useState(true);
   const supabase = createSupabaseBrowserClient();
 
+  const user = session?.user;
+
   useEffect(() => {
     let mounted = true;
 
     async function fetchData() {
-      if (!session?.user) return;
+      if (!user) return;
       
       try {
         setLoading(true);
-        console.log('Fetching data for user:', session.user.id);
+        console.log('Fetching data for user:', user.id);
         
         // Fetch user settings
         const { data: settings, error: settingsError } = await supabase
           .from('user_settings')
           .select('*')
-          .eq('user_id', session.user.id)
+          .eq('user_id', user.id)
           .single();
 
         if (settingsError) throw settingsError;
@@ -48,7 +50,7 @@ export default function FetchUserDetails() {
             interpretation_elements (*),
             verses (*)
           `)
-          .eq('user_id', session?.user?.id || '')
+          .eq('user_id', user?.id || '')
           .order('created_at', { ascending: false });
 
         if (dreamError) throw dreamError;
@@ -80,7 +82,7 @@ export default function FetchUserDetails() {
           event: '*',
           schema: 'public',
           table: 'dream_analyses',
-          filter: `user_id=eq.${session?.user?.id}`
+          filter: `user_id=eq.${user?.id}`
         },
         () => fetchData()
       )
@@ -110,24 +112,22 @@ export default function FetchUserDetails() {
       mounted = false;
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, supabase]);
+  }, [user?.id, supabase]);
 
   if (loading) return <div>Loading...</div>;
   if (!session) return null;
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <DisplayUserDetails
-      session={session}
-      initialDreams={dreams}
-      initialError={null}
-      userSettings={userSettings ? {
-        bible_version: userSettings.bible_version,
-        created_at: userSettings.created_at,
-        language: userSettings.language,
-        updated_at: userSettings.updated_at || '',
-        user_id: userSettings.user_id || ''
-      } : null}
-    />
+    <div>
+      {session && (
+        <DisplayUserDetails 
+          session={session} 
+          initialDreams={dreams}
+          initialError={error}
+          userSettings={userSettings}
+        />
+      )}
+    </div>
   );
 }

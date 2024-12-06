@@ -1,28 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/supabase'
-import { DreamItem } from '../types/dreamAnalysis';
+"use client";
 
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import React, { useState, useEffect } from 'react';
+import { createSupabaseBrowserClient } from '@/lib/utils/supabase/browser-client';
+import { DreamItem } from '../types/dreamAnalysis';
+import { Session } from '@supabase/supabase-js';
 
 interface NavbarSearchProps {
-    onSearch: (results: DreamItem[]) => void;
-  }
+  onSearch: (results: DreamItem[]) => void;
+  session: Session | null;
+}
 
-export default function NavbarSearch() {
+export default function NavbarSearch({ onSearch, session }: NavbarSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [selectedTag, setSelectedTag] = useState('All Tags');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     fetchTags();
-  }, []);
+  }, [session]);
 
   async function fetchTags() {
+    if (!session?.user) {
+      console.log('No session for fetching tags');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('tags')
       .select('name')
@@ -35,35 +39,71 @@ export default function NavbarSearch() {
     }
   }
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const searchTags = selectedTag === 'All Tags' ? [searchTerm] : [selectedTag, searchTerm];
-    const results = await searchDreamsByTags(searchTags);
-    console.log('Search results:', results);
-    // Here you would typically update your app's state or navigate to a results page
+  async function searchDreams(searchTerm: string) {
+    try {
+      if (!session?.user) return [];
+
+      const { data, error } = await supabase
+        .from('dream_analyses')
+        .select(`
+          *,
+          dream_tags (
+            tags (
+              id,
+              name
+            )
+          ),
+          interpretation_elements (*),
+          verses (*)
+        `)
+        .eq('user_id', session.user.id)
+        .textSearch('search_vector', searchTerm);
+
+      if (error) {
+        console.error('Error searching dreams:', error.message);
+        return [];
+      }
+
+      return data.map(item => ({
+        ...item,
+        status: 'complete' as const,
+        dream_tags: item.dream_tags?.map((dt: { tags?: { id?: string; name?: string } }) => ({
+          tags: {
+            id: dt.tags?.id || '',
+            name: dt.tags?.name || ''
+          }
+        })) || []
+      })) as DreamItem[];
+
+    } catch (err) {
+      console.error('Search error:', err);
+      return [];
+    }
   }
 
-  async function searchDreamsByTags(tags: string[]) {
-    const { data, error } = await supabase
-      .from('dream_analyses')
-      .select(`
-        id,
-        title,
-        original_dream,
-        dream_tags!inner (
-          tags (
-            name
-          )
-        )
-      `)
-      .contains('dream_tags.tags.name', tags);
-
-    if (error) {
-      console.error('Error searching dreams:', error);
-      return null;
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    
+    if (!session?.user) {
+      console.error('User not authenticated');
+      return;
+    }
+    
+    let searchTags = [];
+    if (selectedTag !== 'All Tags') {
+      searchTags.push(selectedTag);
+    }
+    if (searchTerm.trim()) {
+      searchTags.push(searchTerm.trim());
     }
 
-    return data;
+    if (searchTags.length === 0) {
+      return; // Don't search if no tags specified
+    }
+    console.log('Searching with tags:', searchTags);
+    const results = await searchDreams(searchTags.join(','));
+    console.log('Search results:', results);
+    onSearch(results);
   }
 
   return (

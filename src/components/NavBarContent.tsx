@@ -6,6 +6,7 @@ import { Dropdown, Avatar } from "flowbite-react";
 import Link from "next/link";
 import LogoutButton from "./logout-button";
 import NavbarSearch from './NavBarSearch';
+import { DreamItem } from '@/types/dreamAnalysis';
 
 interface NavBarContentProps {
   session: Session | null;
@@ -14,11 +15,25 @@ interface NavBarContentProps {
 export default function NavBarContent({ session }: NavBarContentProps) {
   const user = session?.user;
   const [isOpen, setIsOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<DreamItem[]>([]);
 
   const profilePictureUrl = user?.user_metadata?.avatar_url || "/path/to/default-avatar.jpg";
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleSearch = async (results: DreamItem[]) => {
+    if (session?.user) {
+      setSearchResults(results);
+      console.log('Search results in NavBarContent:', results);
+      const event = new CustomEvent('searchResultsUpdate', { 
+        detail: results 
+      });
+      window.dispatchEvent(event);
+    } else {
+      console.log('User not authenticated');
+    }
   };
 
   return (
@@ -32,9 +47,9 @@ export default function NavBarContent({ session }: NavBarContentProps) {
           </span>
         </Link>
         
-        {/* <div className="flex-grow mx-4">
-          <NavbarSearch />
-        </div> */}
+        <div className="flex-grow mx-4">
+          <NavbarSearch onSearch={handleSearch} session={session} />
+        </div>
 
         <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           {user ? (

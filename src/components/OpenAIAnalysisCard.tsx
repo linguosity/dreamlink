@@ -3,7 +3,7 @@
 import React, { useState, type JSX, useEffect } from 'react';
 import { AnimatePresence, motion, HTMLMotionProps } from "framer-motion";
 import { CloudIcon } from '@heroicons/react/24/outline';
-import { Card, Badge, Popover, Modal, Button, TextInput, Textarea, HR } from 'flowbite-react';
+import { Card, Badge, Popover, Modal, Button, TextInput, Textarea, HR, Tabs } from 'flowbite-react';
 import { DreamItem, Verse, Explanation } from '@/types/dreamAnalysis';
 import dayjs from 'dayjs';
 import { MotionDiv } from '@/lib/motion';
@@ -260,18 +260,26 @@ const OpenAIAnalysisCard: React.FC<OpenAIAnalysisCardProps> = ({ dream, onDelete
                 </button>
               </div>
               
-              <div className="mb-4">
-                {renderInterpretation(dream, true)}
-              </div>
+              <Tabs>
+                <Tabs.Item active title="Interpretation">
+                  {renderInterpretation(dream, true)}
+                </Tabs.Item>
+                <Tabs.Item title="Original Dream">
+                  <div className="prose dark:prose-invert max-w-none">
+                    <span className="block text-sm text-gray-500 mb-2">
+                      {dayjs(dream.created_at).format('MMMM D, YYYY')}
+                    </span>
+                    <div className="whitespace-pre-wrap">
+                      {dream.original_dream}
+                    </div>
+                  </div>
+                </Tabs.Item>
+              </Tabs>
 
               <div className="flex justify-end gap-2 mt-4">
                 <Button onClick={handleEdit}>Edit</Button>
-                <Button color="failure" onClick={handleDelete}>
-                  Delete
-                </Button>
-                <Button color="gray" onClick={() => setOpenModal(false)}>
-                  Close
-                </Button>
+                <Button color="failure" onClick={handleDelete}>Delete</Button>
+                <Button color="gray" onClick={() => setOpenModal(false)}>Close</Button>
               </div>
             </ModalContent>
           </Backdrop>

@@ -44,6 +44,8 @@ export default function DisplayUserDetails({
   const isMobile = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(1);
+  const [searchResults, setSearchResults] = useState<DreamItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createSupabaseBrowserClient();
 
@@ -62,6 +64,24 @@ export default function DisplayUserDetails({
     window.addEventListener('resize', updateColumns);
     return () => window.removeEventListener('resize', updateColumns);
   }, []);
+
+  useEffect(() => {
+    const handleSearchResults = (event: CustomEvent<DreamItem[]>) => {
+      console.log('Received search results in DisplayUserDetails:', event.detail);
+      setSearchResults(event.detail);
+    };
+
+    window.addEventListener('searchResultsUpdate', handleSearchResults as EventListener);
+    return () => {
+      window.removeEventListener('searchResultsUpdate', handleSearchResults as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (dreams.length > 0) {
+      setIsLoading(false);
+    }
+  }, [dreams]);
 
   const handleAddDream = (newDream: DreamItem) => {
     setDreams(prevDreams => [newDream, ...prevDreams]);
@@ -119,13 +139,15 @@ export default function DisplayUserDetails({
     setSelectedTag(selectedTag === tag ? null : tag);
   };
 
-  const filteredDreams = selectedTag
-    ? dreams.filter(dream => 
-        (dream.tags || [])
-          .concat(dream.dream_tags?.map(dt => dt.tags.name) || [])
-          .includes(selectedTag)
-      )
-    : dreams;
+  const filteredDreams = searchResults.length > 0 
+    ? searchResults 
+    : selectedTag
+      ? dreams.filter(dream => 
+          (dream.tags || [])
+            .concat(dream.dream_tags?.map(dt => dt.tags.name) || [])
+            .includes(selectedTag)
+        )
+      : dreams;
 
   if (!user) {
     return <p>Please log in to view your details.</p>;
@@ -151,7 +173,11 @@ export default function DisplayUserDetails({
 
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {dreams && dreams.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+        </div>
+      ) : dreams.length > 0 ? (
         isMobile ? (
           <SwipeCards
             dreams={filteredDreams}
@@ -168,7 +194,7 @@ export default function DisplayUserDetails({
               gap: '1rem'
             }}
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               {filteredDreams.map((dream, index) => (
                 <MotionDiv
                   key={dream.id}
@@ -182,6 +208,7 @@ export default function DisplayUserDetails({
                     duration: 0.6 
                   }}
                   className="w-full relative"
+                  style={getGridPosition(index)}
                 >
                   <OpenAIAnalysisCard
                     index={index}

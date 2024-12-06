@@ -195,3 +195,10 @@ main {
 }
 
 /* Remove any other conflicting modal styles */
+
+/* Add these styles for the search input */
+.search-input-backdrop {
+  @apply bg-gray-50/80 dark:bg-gray-700/80;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}

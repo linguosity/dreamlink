@@ -6,27 +6,24 @@ import { Session } from "@supabase/supabase-js";
 
 export default function useSession() {
   const [session, setSession] = useState<Session | null>(null);
-  const [supabase] = useState(() => createSupabaseBrowserClient());
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
-    console.log('useSession hook initialized');
-    
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session);
-      setSession(session);
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (mounted) setSession(initialSession);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('Auth state changed:', { event: _event, session });
-      setSession(session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setSession(session);
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return session;
 }
