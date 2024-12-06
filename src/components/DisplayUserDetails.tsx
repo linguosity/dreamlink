@@ -139,15 +139,7 @@ export default function DisplayUserDetails({
     setSelectedTag(selectedTag === tag ? null : tag);
   };
 
-  const filteredDreams = searchResults.length > 0 
-    ? searchResults 
-    : selectedTag
-      ? dreams.filter(dream => 
-          (dream.tags || [])
-            .concat(dream.dream_tags?.map(dt => dt.tags.name) || [])
-            .includes(selectedTag)
-        )
-      : dreams;
+  const displayedDreams = searchResults.length > 0 ? searchResults : dreams;
 
   if (!user) {
     return <p>Please log in to view your details.</p>;
@@ -180,7 +172,7 @@ export default function DisplayUserDetails({
       ) : dreams.length > 0 ? (
         isMobile ? (
           <SwipeCards
-            dreams={filteredDreams}
+            dreams={displayedDreams}
             onUpdate={handleUpdate}
             onDelete={handleDelete}
             onTagClick={handleTagClick}
@@ -195,7 +187,7 @@ export default function DisplayUserDetails({
             }}
           >
             <AnimatePresence>
-              {filteredDreams.map((dream, index) => (
+              {displayedDreams.map((dream, index) => (
                 <MotionDiv
                   key={dream.id}
                   layout
