@@ -3,7 +3,11 @@
 import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-client";
 import { useRouter } from "next/navigation";
 
-export default function LogoutButton() {
+interface LogoutButtonProps {
+  className?: string;
+}
+
+export default function LogoutButton({ className }: LogoutButtonProps) {
   const supabase = createSupabaseBrowserClient();
   const router = useRouter();
 
@@ -18,5 +22,10 @@ export default function LogoutButton() {
     }
   };
 
-  return <button onClick={handleLogout}>Logout</button>;
+  // Return just the text and handler, let parent handle the button
+  return (
+    <span onClick={handleLogout} className={className}>
+      Sign out
+    </span>
+  );
 }

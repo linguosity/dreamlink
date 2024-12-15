@@ -1,48 +1,43 @@
-// src/components/DreamInputForm.tsx
-
-'use client'; // Indicates that this is a client-side component
+'use client';
 
 import React, { useState } from 'react';
-import { Button, Modal, Spinner } from 'flowbite-react'; // Import UI components
-import { useRouter } from 'next/navigation'; // Import router for navigation actions
-import { DreamItem } from '@/types/dreamAnalysis'; // Import from dreamAnalysis.ts
-import { Expand, Send } from 'lucide-react'; // Add this import
+import { Button, Modal, Spinner } from 'flowbite-react';
+import { useRouter } from 'next/navigation';
+import { DreamItem } from '@/types/dreamAnalysis';
+import { Expand, Send } from 'lucide-react';
 
 interface DreamInputFormProps {
-  userId: string; // The ID of the current user
-  userFullName: string; // The full name of the user
-  onAddDream: (dream: DreamItem) => void; // Function to call when a new dream is added
-  onSubmit: (dreamText: string) => Promise<boolean>; // Function to handle dream submission
+  userId: string;
+  userFullName: string;
+  onAddDream: (dream: DreamItem) => void;
+  onSubmit: (dreamText: string) => Promise<boolean>;
 }
 
-// This component renders the form for inputting a new dream
 export default function DreamInputForm({ userId, userFullName, onAddDream, onSubmit }: DreamInputFormProps) {
-  const [input, setInput] = useState(''); // State to hold the dream text input
-  const [isLoading, setIsLoading] = useState(false); // State to indicate loading status
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
-  const router = useRouter(); // Router for navigation or refreshing the page
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
-  // Function to handle changes in the dream input field
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
 
-  // Function to handle form submission
   const handleSubmit = async (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault(); // Prevent the default form submission behavior
-    setIsLoading(true); // Set loading state to true
-    const success = await onSubmit(input); // Call the onSubmit function passed from props
-    setIsLoading(false); // Set loading state to false
+    e?.preventDefault();
+    setIsLoading(true);
+    const success = await onSubmit(input);
+    setIsLoading(false);
     if (success) {
-      setInput(''); // Clear the input field
-      setIsModalOpen(false); // Close the modal
-      router.refresh(); // Refresh the page or perform additional actions
+      setInput('');
+      setIsModalOpen(false);
+      router.refresh();
     }
   };
 
   return (
     <div className="w-full">
-      <form onSubmit={handleSubmit} className="w-full max-w-7xl mx-auto px-8 mt-4">
+      <form onSubmit={handleSubmit} className="w-full">
         <div className="flex items-center gap-4">
           <div className="relative flex-grow">
             <textarea
@@ -50,34 +45,48 @@ export default function DreamInputForm({ userId, userFullName, onAddDream, onSub
               placeholder="Share your dream journey..."
               required
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               rows={1}
               aria-label="Dream input"
-              className="w-full p-4 text-lg bg-transparent text-white backdrop-blur-sm rounded-xl 
-                         border border-white/20 focus:ring-2 focus:ring-blue-500/50 
-                         focus:border-transparent resize-none transition-all duration-200
-                         placeholder-white/50"
+              className="
+                block w-full p-2.5 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300
+                focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400
+                dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+                dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
+                resize-none
+              "
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2">
-              <Button
+
+            {/* Button group container */}
+            <div className="absolute inset-y-0 right-0 flex items-center pr-1.5">
+              {/* Expand Button (like the gray dropdown button) */}
+              <button
                 type="button"
-                size="sm"
-                color="gray"
                 onClick={() => setIsModalOpen(true)}
-                className="p-2 bg-transparent hover:bg-white/5 backdrop-blur-sm transition-all duration-200 border-0"
+                className="
+                  inline-flex items-center p-2.5 text-sm font-medium text-gray-900 bg-gray-100 
+                  border border-gray-300 rounded-l-lg hover:bg-gray-200 focus:ring-4 
+                  focus:outline-none focus:ring-gray-100 dark:bg-gray-700 dark:border-gray-600 
+                  dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-700
+                "
                 title="Expand editor"
               >
-                <Expand className="w-5 h-5 text-white" />
-              </Button>
-              <Button
+                <Expand className="w-4 h-4" />
+              </button>
+
+              {/* Send Button (like the blue search button) */}
+              <button
                 type="submit"
-                size="sm"
                 disabled={isLoading}
-                className="p-2 bg-transparent hover:bg-white/5 backdrop-blur-sm transition-all duration-200 border-0"
+                className="
+                  inline-flex items-center p-2.5 text-sm font-medium text-white bg-blue-700 
+                  border border-blue-700 rounded-r-lg hover:bg-blue-800 focus:ring-4 focus:outline-none 
+                  focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+                "
                 title="Submit dream"
               >
-                {isLoading ? <Spinner size="sm" /> : <Send className="w-5 h-5 text-white" />}
-              </Button>
+                {isLoading ? <Spinner size="sm" /> : <Send className="w-4 h-4" />}
+              </button>
             </div>
           </div>
         </div>
@@ -91,23 +100,37 @@ export default function DreamInputForm({ userId, userFullName, onAddDream, onSub
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={12}
-            className="w-full p-6 text-lg rounded-lg border border-gray-300 
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                       min-h-[400px]"
+            className="
+              w-full p-4 text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300
+              focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400
+              dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+              dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
+            "
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button 
-            onClick={() => handleSubmit()} 
+          <button
+            onClick={() => handleSubmit()}
             disabled={isLoading}
-            size="xl"
-            className="px-8 py-3 text-lg"
+            className="
+              inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-700
+              border border-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none
+              focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+            "
           >
             {isLoading ? <Spinner size="sm" /> : 'Submit Dream'}
-          </Button>
-          <Button color="gray" onClick={() => setIsModalOpen(false)}>
+          </button>
+          <button
+            onClick={() => setIsModalOpen(false)}
+            className="
+              inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200
+              border border-gray-300 rounded-lg hover:bg-gray-300 focus:ring-4 focus:outline-none
+              focus:ring-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white 
+              dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-gray-700
+            "
+          >
             Cancel
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
     </div>

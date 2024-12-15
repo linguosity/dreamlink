@@ -4,41 +4,50 @@ import { useEffect, useState } from 'react';
 import { useUserSettings } from '@/context/UserSettingsContext';
 import { Dropdown } from 'flowbite-react';
 
-const bibleVersions = [
-  { code: 'KJV', name: 'King James Version' },
-  { code: 'NIV', name: 'New International Version' },
-  { code: 'ESV', name: 'English Standard Version' },
-  { code: 'NLT', name: 'New Living Translation' },
-  { code: 'TOL', name: 'Tree of Life' },
-  // Add more Bible versions as needed
-];
+interface Option {
+  value: string;
+  label: string;
+}
 
-export default function BibleVersionSettings() {
+interface BibleVersionSettingsProps {
+  options: Option[];
+  defaultValue: string;
+  className?: string;
+}
+
+export default function BibleVersionSettings({ options, defaultValue, className }: BibleVersionSettingsProps) {
   const { settings, setSettings, showNotification } = useUserSettings();
-  const [bibleVersion, setBibleVersionState] = useState(settings?.bible_version ?? 'KJV');
+  const [bibleVersion, setBibleVersion] = useState<string>(defaultValue);
 
   useEffect(() => {
-    setBibleVersionState(settings?.bible_version || 'KJV');
-  }, [settings]);
+    // Update state if defaultValue changes
+    setBibleVersion(defaultValue);
+  }, [defaultValue]);
 
   const handleSave = async () => {
     await setSettings(prev => prev ? { ...prev, bible_version: bibleVersion } : null);
     showNotification('Bible version updated successfully!', 'success');
   };
 
+  const selectedOption = options.find(opt => opt.value === bibleVersion);
+
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Bible Version Settings</h2>
-      <Dropdown label={bibleVersions.find(version => version.code === bibleVersion)?.name || 'Select Bible Version'}>
-        {bibleVersions.map((version) => (
-          <Dropdown.Item key={version.code} onClick={() => setBibleVersionState(version.code)}>
-            {version.name}
-          </Dropdown.Item>
-        ))}
-      </Dropdown>
+    <div className="flex flex-col space-y-4">
+      <div className="w-full">
+        <Dropdown
+          label={selectedOption?.label || 'Select Bible Version'}
+          className={`dropdown-label-override text-black ${className ?? ''}`}
+        >
+          {options.map((version) => (
+            <Dropdown.Item key={version.value} onClick={() => setBibleVersion(version.value)}>
+              {version.label}
+            </Dropdown.Item>
+          ))}
+        </Dropdown>
+      </div>
       <button
         onClick={handleSave}
-        className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+        className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
       >
         Save Bible Version
       </button>

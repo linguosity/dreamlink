@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------
+ * Fonts
+ * ---------------------------------------------
+ */
 @font-face {
   font-family: 'Blanka';
   src: url('/fonts/Blanka.otf') format('opentype');
@@ -10,12 +14,19 @@
   font-style: normal;
 }
 
-/* First, let's define our constants */
+/* ---------------------------------------------
+ * Root Variables & Defaults
+ * ---------------------------------------------
+ */
 :root {
   --navbar-height: 64px;
   --content-spacing: 1rem;
 }
 
+/* ---------------------------------------------
+ * Base Resets & Layout
+ * ---------------------------------------------
+ */
 html, body {
   height: 100%;
   margin: 0;
@@ -23,10 +34,17 @@ html, body {
 }
 
 body {
-  padding-top: 64px; /* Height of the navbar */
+  padding-top: var(--navbar-height);
 }
 
-/* Establish proper stacking context */
+#root, #__next {
+  height: 100%;
+}
+
+/* ---------------------------------------------
+ * Navbar & Positioning
+ * ---------------------------------------------
+ */
 nav {
   position: fixed !important; /* Ensure fixed positioning */
   top: 0;
@@ -38,26 +56,31 @@ nav {
   background-color: #1E3A8A;
 }
 
-/* Create a content wrapper with proper spacing */
+/* ---------------------------------------------
+ * Content Wrappers & Layout Helpers
+ * ---------------------------------------------
+ */
 .content-wrapper {
   z-index: 1;
 }
 
-/* Add margin to the form container */
 .relative.flex.items-center.justify-center {
-  margin-top: 80px; /* Add space below navbar */
-  margin-bottom: 2rem;
+  margin-top: 12px; /* Spacing below navbar */
+  margin-bottom: 1rem;
   padding: 0 2rem;
 }
 
 main {
   position: relative;
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - var(--navbar-height));
   z-index: 1;
-  padding-top: 0; /* Remove this since we're adding margin to children */
+  padding-top: 0; /* Removed default padding-top */
 }
 
-/* Ensure background elements stay behind content */
+/* ---------------------------------------------
+ * Layering & Backgrounds
+ * ---------------------------------------------
+ */
 .fixed.inset-0.bg-black {
   z-index: -2;
 }
@@ -66,24 +89,19 @@ main {
   z-index: -1;
 }
 
-#root, #__next {
-  height: 100%;
-}
-
+/* ---------------------------------------------
+ * Sidebar Styling
+ * ---------------------------------------------
+ */
 .sidebar {
   width: 250px;
   transition: width 0.3s;
-  height: calc(100vh - 64px); /* Adjust 64px if your navbar height is different */
+  height: calc(100vh - var(--navbar-height));
   overflow-y: auto;
 }
 
 .sidebar.collapsed {
   width: 80px;
-}
-
-.content {
-  flex: 1;
-  overflow-y: auto;
 }
 
 .sidebar-container {
@@ -99,13 +117,20 @@ main {
   right: 1rem;
 }
 
+/* ---------------------------------------------
+ * Textareas & Form Elements
+ * ---------------------------------------------
+ */
 .cloud-textarea {
   border: 0.5px grey dotted;
   border-radius: 8px;
   opacity: 0.9;
 }
 
-/* New styles for better mobile support */
+/* ---------------------------------------------
+ * Responsive Adjustments
+ * ---------------------------------------------
+ */
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
@@ -113,15 +138,18 @@ main {
   }
 
   .content {
-    height: calc(100vh - 64px); /* Adjust based on your navbar height */
+    height: calc(100vh - var(--navbar-height));
     overflow-y: auto;
   }
 }
 
-/* Styles for SwipeCards */
+/* ---------------------------------------------
+ * SwipeCards
+ * ---------------------------------------------
+ */
 .swipe-card-container {
   width: 100%;
-  height: calc(100vh - 64px); /* Adjust based on your navbar height */
+  height: calc(100vh - var(--navbar-height));
   overflow: hidden;
   position: relative;
 }
@@ -136,13 +164,20 @@ main {
   transform: translate(-50%, -50%);
 }
 
+/* ---------------------------------------------
+ * Cloud Animations
+ * ---------------------------------------------
+ */
 .cloud-shape {
   animation: float 6s ease-in-out infinite;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
   transition: all 0.3s ease;
 }
 
-/* Adjust dream grid layout */
+/* ---------------------------------------------
+ * Dream Grid Layout
+ * ---------------------------------------------
+ */
 .dream-grid {
   display: grid;
   gap: 1.5rem;
@@ -155,7 +190,10 @@ main {
   width: 100%;
 }
 
-/* Add these styles for the modal and backdrop */
+/* ---------------------------------------------
+ * Modal Styles
+ * ---------------------------------------------
+ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -176,15 +214,14 @@ main {
   border-radius: 0.5rem;
   overflow: hidden;
   will-change: transform, opacity;
-}
-
-/* Dark mode support for modal content */
-.modal-content {
   @apply bg-white dark:bg-gray-800;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Ensure proper z-index stacking */
+/* ---------------------------------------------
+ * Element Stacking
+ * ---------------------------------------------
+ */
 .dream-card {
   z-index: 1;
 }
@@ -194,11 +231,20 @@ main {
   z-index: 100;
 }
 
-/* Remove any other conflicting modal styles */
-
-/* Add these styles for the search input */
+/* ---------------------------------------------
+ * Search Input Backdrop
+ * ---------------------------------------------
+ */
 .search-input-backdrop {
   @apply bg-gray-50/80 dark:bg-gray-700/80;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---------------------------------------------
+ * Dropdown Overrides
+ * ---------------------------------------------
+ */
+.text-sm {
+  color: black !important;
 }

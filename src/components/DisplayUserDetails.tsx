@@ -9,12 +9,11 @@ import { createSupabaseBrowserClient } from "../lib/utils/supabase/browser-clien
 import useIsMobile from "@/app/hooks/useIsMobile";
 import SwipeCards from './SwipeCards';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HTMLMotionProps } from 'framer-motion';
 import { MotionDiv } from '@/lib/motion';
 import { UserSettingsRow } from "@/types/userSettings";
 import { Badge } from 'flowbite-react';
+import { v4 as uuidv4 } from 'uuid';
 
-// First, define the UserSettings type
 export interface UserSettings {
   user_id: string;
   language: string;
@@ -23,59 +22,33 @@ export interface UserSettings {
   updated_at: string;
 }
 
-// Then use it in the props interface
 export interface DisplayUserDetailsProps {
-  session: Session;
+  session: Session | null | undefined;
   initialDreams: DreamItem[];
   initialError: null | string;
   userSettings: UserSettingsRow | null;
+  searchResults: DreamItem[];
+  selectedTag: string;
+  onTagSelect: (tag: string) => void;
 }
 
 export default function DisplayUserDetails({
   session,
   initialDreams,
   initialError,
-  userSettings
+  userSettings,
+  searchResults,
+  selectedTag,
+  onTagSelect
 }: DisplayUserDetailsProps) {
   const user = session?.user;
   const [dreams, setDreams] = useState<DreamItem[]>(initialDreams || []);
   const [error, setError] = useState<string | null>(initialError);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(1);
-  const [searchResults, setSearchResults] = useState<DreamItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const supabase = createSupabaseBrowserClient();
-
-  useEffect(() => {
-    const updateColumns = () => {
-      if (gridRef.current) {
-        const gridWidth = gridRef.current.offsetWidth;
-        const cardWidth = 350; // minimum width of a card
-        const gap = 16; // gap size in pixels
-        const newColumns = Math.floor((gridWidth + gap) / (cardWidth + gap));
-        setColumns(Math.max(1, newColumns));
-      }
-    };
-
-    updateColumns();
-    window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
-  }, []);
-
-  useEffect(() => {
-    const handleSearchResults = (event: CustomEvent<DreamItem[]>) => {
-      console.log('Received search results in DisplayUserDetails:', event.detail);
-      setSearchResults(event.detail);
-    };
-
-    window.addEventListener('searchResultsUpdate', handleSearchResults as EventListener);
-    return () => {
-      window.removeEventListener('searchResultsUpdate', handleSearchResults as EventListener);
-    };
-  }, []);
 
   useEffect(() => {
     if (dreams.length > 0) {
@@ -83,8 +56,15 @@ export default function DisplayUserDetails({
     }
   }, [dreams]);
 
+  // Ensure each dream has a unique non-empty ID
+  // This function is called when a new dream is created via DreamInputWrapper.
   const handleAddDream = (newDream: DreamItem) => {
-    setDreams(prevDreams => [newDream, ...prevDreams]);
+    const uniqueDream = {
+      ...newDream,
+      // If the dream's id is empty or missing, generate a UUID
+      id: newDream.id && newDream.id.trim() !== '' ? newDream.id : uuidv4(),
+    };
+    setDreams(prevDreams => [uniqueDream, ...prevDreams]);
   };
 
   const handleDelete = async (dreamId: string) => {
@@ -95,7 +75,7 @@ export default function DisplayUserDetails({
         .eq('id', dreamId);
 
       if (deleteError) {
-        setError(deleteError.message); // Now properly converts to string
+        setError(deleteError.message);
         return;
       }
 
@@ -113,7 +93,7 @@ export default function DisplayUserDetails({
         .eq('id', updatedDream.id);
 
       if (updateError) {
-        setError(updateError.message); // Convert to string
+        setError(updateError.message);
         return;
       }
 
@@ -121,41 +101,38 @@ export default function DisplayUserDetails({
         dream.id === updatedDream.id ? updatedDream : dream
       ));
     } catch (err) {
-      // Convert Error to string before setting
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     }
   };
 
-  const getGridPosition = (index: number) => {
-    const column = index % columns;
-    const row = Math.floor(index / columns);
-    return {
-      gridColumn: `${column + 1}`,
-      gridRow: `${row + 1}`,
-    };
-  };
-
   const handleTagClick = (tag: string) => {
-    setSelectedTag(selectedTag === tag ? null : tag);
+    console.log('[DisplayUserDetails] Tag clicked:', tag);
+    onTagSelect(tag === selectedTag ? 'All Tags' : tag);
   };
 
   const displayedDreams = searchResults.length > 0 ? searchResults : dreams;
+
+  // Also ensure that displayedDreams have unique IDs before rendering
+  const sanitizedDreams = displayedDreams.map(dream => ({
+    ...dream,
+    id: dream.id && dream.id.trim() !== '' ? dream.id : uuidv4(),
+  }));
 
   if (!user) {
     return <p>Please log in to view your details.</p>;
   }
 
   return (
-    <div className="space-y-6 m-8">
-      <div className="flex flex-col items-center mb-8">
-        <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} />
-        
-        {selectedTag && (
+    <div>
+      <div className="flex flex-col items-center">
+        {/* <DreamInputWrapper userId={user.id} onAddDream={handleAddDream} /> */}
+
+        {selectedTag !== 'All Tags' && (
           <div className="self-start mt-2 px-16">
-            <Badge 
-              color="indigo" 
-              className="cursor-pointer" 
-              onClick={() => setSelectedTag(null)}
+            <Badge
+              color="indigo"
+              className="cursor-pointer"
+              onClick={() => onTagSelect('All Tags')}
             >
               #{selectedTag} ×
             </Badge>
@@ -165,42 +142,47 @@ export default function DisplayUserDetails({
 
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
+      {isLoading && (
+        <div className="flex justify-center items-center">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
         </div>
-      ) : dreams.length > 0 ? (
+      )}
+
+      {!isLoading && sanitizedDreams.length === 0 && (
+        <p>No dreams found. Start by adding a new dream!</p>
+      )}
+
+      {!isLoading && sanitizedDreams.length > 0 && (
         isMobile ? (
           <SwipeCards
-            dreams={displayedDreams}
+            dreams={sanitizedDreams}
             onUpdate={handleUpdate}
             onDelete={handleDelete}
             onTagClick={handleTagClick}
           />
         ) : (
-          <div 
+          <div
             ref={gridRef}
-            className="grid gap-4 p-4 dream-grid"
+            className="grid p-4 dream-grid"
             style={{
-              gridTemplateColumns: `repeat(${columns}, minmax(350px, 1fr))`,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
               gap: '1rem'
             }}
           >
             <AnimatePresence>
-              {displayedDreams.map((dream, index) => (
+              {sanitizedDreams.map((dream, index) => (
                 <MotionDiv
                   key={dream.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ 
-                    type: "spring", 
+                  transition={{
+                    type: "spring",
                     bounce: 0.3,
-                    duration: 0.6 
+                    duration: 0.6
                   }}
                   className="w-full relative"
-                  style={getGridPosition(index)}
                 >
                   <OpenAIAnalysisCard
                     index={index}
@@ -214,8 +196,6 @@ export default function DisplayUserDetails({
             </AnimatePresence>
           </div>
         )
-      ) : (
-        <p>No dreams found. Start by adding a new dream!</p>
       )}
     </div>
   );

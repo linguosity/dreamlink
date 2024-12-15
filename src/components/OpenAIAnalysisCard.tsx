@@ -27,7 +27,7 @@ const getBibleVersionFullName = (code: string): string => {
 interface OpenAIAnalysisCardProps {
   dream: DreamItem;
   onDelete: (id: string) => void;
-  onUpdate: (updatedDream: DreamItem) => void;
+  onUpdate: (dream: DreamItem) => void;
   onTagClick: (tag: string) => void;
   index: number;
 }

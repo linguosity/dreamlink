@@ -9,5 +9,12 @@ interface NavBarProps {
 }
 
 export default function NavBar({ session }: NavBarProps) {
-  return <NavBarContent session={session} />;
+  return (
+    <NavBarContent 
+      session={session}
+      initialDreams={[]}
+      initialError={null}
+      userSettings={null}
+    />
+  );
 }

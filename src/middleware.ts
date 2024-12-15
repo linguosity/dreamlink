@@ -32,6 +32,7 @@ export async function middleware(request: NextRequest) {
             value,
             ...options,
             // Ensure cookies work cross-domain
+            maxAge: 60 * 60 * 4, // 24 hours in seconds
             domain: process.env.NODE_ENV === 'production' 
               ? 'dreamlink-iota.vercel.app' 
               : 'localhost'
